@@ -1,0 +1,65 @@
+#ifndef _OF_IMAGE_H_
+#define _OF_IMAGE_H_
+
+#include "ofConstants.h"
+#include "ofTexture.h"
+#include "ofGraphics.h"
+#include "ofAppRunner.h"		// for height()
+
+#define OF_IMAGE_GRAYSCALE		0x00
+#define OF_IMAGE_COLOR			0x01
+#define OF_IMAGE_COLOR_ALPHA	0x02
+#define OF_IMAGE_UNDEFINED		0x03
+
+//-------------------------
+// forward class declaration, something 
+// we will need in order to compile "OF" as a lib
+// so that you don't need freeImage, quicktime, etc..
+class 	freeImageBitmap;
+//-------------------------
+
+
+void 	ofCloseFreeImage();
+
+
+class 	ofImage {
+
+	public :
+		
+		ofImage();
+		~ofImage();
+				
+		void 				loadImage(string fileName);
+		void 				saveImage(string fileName);
+		void 				allocate(int w, int h, int type); 
+		
+		unsigned char * 	getPixels();			// up to you to get this right	
+		void 				setFromPixels(unsigned char * pixels, int w, int h, int newType);
+		
+		void 				setImageType(int type);
+		void 				resize(int newWidth, int newHeight);
+		void 				grabScreen(int x, int y, int w, int h);		// grab pixels from opengl, using glreadpixels
+		
+		void 				clone(ofImage &mom);
+
+		int 				type;			// what type of image it is (as above)
+		int 				width, height, bpp;		// w,h, bits per pixel
+		
+		void 				setUseTexture(bool bUse);
+		void 				draw(float x, float y, float w, float h);	
+		void 				draw(float x, float y);	
+		
+	protected:	
+		
+		void 				swapChannels(bool bAlpha);
+		void 				update();
+		freeImageBitmap 	* IMG;	
+		ofTexture 			tex;
+		bool				bUseTexture;	
+		bool				bAllocatedPixels;
+		
+}; 
+
+
+
+#endif

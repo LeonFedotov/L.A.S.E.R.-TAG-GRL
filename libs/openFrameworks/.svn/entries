@@ -1,0 +1,82 @@
+8
+
+dir
+116
+svn+ssh://ofadmin@openframeworks.cc/home/ofadmin/svn/openFrameworks
+svn+ssh://ofadmin@openframeworks.cc/home/ofadmin/svn/openFrameworks
+
+
+
+2007-11-25T19:27:34.638082Z
+116
+ofadmin
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+5aee0c02-c622-0410-bcf2-d8652e674aa7
+
+ofMain.h
+file
+
+
+
+
+2007-11-25T19:28:16.000000Z
+4f2f597377ab48e2439c4f034d1e5377
+2007-11-25T14:56:31.402871Z
+115
+ofadmin
+
+app
+dir
+
+graphics
+dir
+
+utils
+dir
+
+ofAddons.h
+file
+
+
+
+
+2007-11-25T19:28:16.000000Z
+157cce0efb36775af4940a5828be4c88
+2007-11-25T14:56:31.402871Z
+115
+ofadmin
+
+ofCore.h
+file
+
+
+
+
+2007-11-25T19:28:16.000000Z
+3dbb780b031241737612b69a3bb77a3b
+2007-11-25T19:27:34.638082Z
+116
+ofadmin
+
+communication
+dir
+
+video
+dir
+
+sound
+dir
+

@@ -1,0 +1,4 @@
+if you get gluCallback errors when compiling try adding
+#define MAC_OS_X_VERSION_10_5 to the top of ofGraphics.cpp
+
+This should only be an issue on OS X 10.4.10 and 10.4.11 as they have a newer GCC version. 
