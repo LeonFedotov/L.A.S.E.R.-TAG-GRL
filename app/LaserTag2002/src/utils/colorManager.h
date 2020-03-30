@@ -2,7 +2,7 @@
 #define _COLOR_MANAGER_
 
 #include "ofMain.h"
-#include "ofAddons.h"
+#include "ofxXmlSettings.h"
 
 #define MAX_COLORS 50
 
@@ -46,7 +46,7 @@ class colorManager{
 		unsigned char   charArr[3];
 		float			floatArr[3];
 		
-		ofXML xmlSettings;
+		ofxXmlSettings xmlSettings;
 };
 
 #endif

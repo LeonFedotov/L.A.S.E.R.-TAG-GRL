@@ -2,7 +2,7 @@
 #define _GUI_SETTING_MANAGER_
 
 #include "ofMain.h"
-#include "ofAddons.h"
+#include "ofxXmlSettings.h"
 #include "guiSetting.h"
 #include "baseGui.h"
 
@@ -41,7 +41,7 @@ class guiSettingsManager : public baseGui
 		
 	protected:
 		
-		ofXML 			xml;
+		ofxXmlSettings 	xml;
 		guiSetting 		gs[MAX_SETTINGS];
 		bool			bI[MAX_SETTINGS];
 		string 			handyString;

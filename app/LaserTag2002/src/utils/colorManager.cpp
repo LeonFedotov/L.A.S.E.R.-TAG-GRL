@@ -98,7 +98,7 @@ int colorManager::getTotalNumber(){
 //----------------------------------------------------
 void colorManager::applyColor(){
 	if(!loaded)return;
-	ofSetColor(	hex[current] );
+	ofSetHexColor(	hex[current] );
 }
 
 //----------------------------------------------------
@@ -147,7 +147,7 @@ void colorManager::drawCurrentColor(int x, int y, int w, int h){
 	ofFill();
 	ofRect(x,y,w,h);
 
-	ofSetColor(0xFFFFFF);
+	ofSetHexColor(0xFFFFFF);
 	ofNoFill();
 	ofRect(x,y,w,h);
 	ofFill();
@@ -165,12 +165,12 @@ void colorManager::drawColorPanel(int x, int y, int w, int h, int num){
 		int pos = current + i;
 		if( pos < 0 || pos >= numColors ) continue;
 		
-		if(pos == current) ofSetColor(0x777777);
-		else ofSetColor(0x00000);
+		if(pos == current) ofSetHexColor(0x777777);
+		else ofSetHexColor(0x00000);
 		ofFill();
-		ofRect(x + shift,y,step,h);
+		ofDrawRectangle(x + shift,y,step,h);
 		
-		ofSetColor(	hex[pos] );
+		ofSetHexColor(	hex[pos] );
 
 		ofFill();
 		ofRect( 4 + x + shift, 4 + y,step - 8,h - 8);

@@ -2,7 +2,6 @@
 #define _APP_CONTROLLER_H
 
 #include "ofMain.h"
-#include "ofAddons.h"
 
 //we actually project at 1024 by 768
 //but we stretch our texture up from 640 by 480

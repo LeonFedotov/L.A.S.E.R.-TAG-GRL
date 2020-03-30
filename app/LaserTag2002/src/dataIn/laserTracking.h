@@ -2,7 +2,7 @@
 #define _LASER_TRACKING_H
 
 #include "ofMain.h"
-#include "ofAddons.h"
+#include "ofxOpenCv.h"
 
 #include "baseGui.h"
 #include "guiQuad.h"
@@ -49,7 +49,7 @@ class laserTracking : public baseGui{
 	
 		//if you want to warp the coords to another quad - give the four points 
 		//-----------------------------------------------------------------------
-		void getWarpedCoordinates(ofPoint2f * dst, float *warpedX, float *warpedY);
+		void getWarpedCoordinates(ofPoint * dst, float *warpedX, float *warpedY);
 		
 		//tells you if new points have arrived
 		bool newData();
@@ -81,18 +81,18 @@ class laserTracking : public baseGui{
 		guiQuad			QUAD;
 		coordWarping	CW;
 		
-		ofPoint2f 			warpSrc[4];
-		ofPoint2f 			warpDst[4];
+		ofPoint 			warpSrc[4];
+		ofPoint 			warpDst[4];
 		
-		ofPoint2f			smoothPos;
-		ofPoint2f			smoothVel;
-		ofPoint2f 			outPoints;
+		ofPoint			smoothPos;
+		ofPoint			smoothVel;
+		ofPoint 			outPoints;
 		
-		ofCvColorImage  	VideoFrame;
-		ofCvColorImage 		WarpedFrame;
-		ofCvColorImage 		hsvFrame;
-		ofCvGrayscaleImage 	PresenceFrame;
-		ofCvContourFinder	Contour;
+		ofxCvColorImage  	VideoFrame;
+		ofxCvColorImage 		WarpedFrame;
+		ofxCvColorImage 		hsvFrame;
+		ofxCvGrayscaleImage 	PresenceFrame;
+		ofxCvContourFinder	Contour;
 		
 		ofImage				resizeMe;
 		
@@ -163,7 +163,7 @@ OLD METHOD
 #define _LASER_TRACKING_H
 
 #include "ofMain.h"
-#include "ofAddons.h"
+
 #include "guiQuad.h"
 
 #include "laserUtils.h"
@@ -394,7 +394,7 @@ class laserTracking : public baseGui{
 				
 			int k = 0;
 			
-			ofPoint2f * pts =  QUAD.getScaledQuadPoints(W, H);
+			ofVec2f * pts =  QUAD.getScaledQuadPoints(W, H);
 			
 			float ptsx[4] = {pts[0].x, pts[1].x, pts[2].x, pts[3].x};
 			float ptsy[4] = {pts[0].y, pts[1].y, pts[2].y, pts[3].y};
@@ -507,7 +507,7 @@ class laserTracking : public baseGui{
 				float tmpY		= Contour.blobs[0].centroid.y/(float)H;
 				
 				
-				ofPoint2f dst[4];
+				ofVec2f dst[4];
 				
 				dst[0].x = 0;
 				dst[0].y = 0;
@@ -521,10 +521,10 @@ class laserTracking : public baseGui{
 				dst[3].x = 0;
 				dst[3].y = 1;
 
-				ofPoint2f *  src = QUAD.getQuadPoints();
+				ofVec2f *  src = QUAD.getQuadPoints();
 
 				CW.calculateMatrix(src, dst);
-				ofPoint2f out = CW.transform(tmpX, tmpY);
+				ofVec2f out = CW.transform(tmpX, tmpY);
 				
 				tmpX = out.x;
 				tmpY = out.y;
@@ -684,7 +684,7 @@ class laserTracking : public baseGui{
 			//lets draw our openCV frames
 			//with a nice border around them
 			ofNoFill();
-			ofSetColor(0xFFFFFF);	
+			ofSetHexColor(0xFFFFFF);
 			VideoFrame.draw(0, 0, 320, 240);
 			ofRect(0,0,320,240);
 			PresenceFrame.draw(320,0, 320, 240);
@@ -695,7 +695,7 @@ class laserTracking : public baseGui{
 			glPushMatrix();
 				glTranslatef(320, 0, 0);
 				glScalef(320.0/(float)W, 240.0/(float)H, 1);
-				ofSetColor(0xFF00FF);
+				ofSetHexColor(0xFF00FF);
 				Contour.draw();
 			glPopMatrix();
 			
@@ -728,7 +728,7 @@ class laserTracking : public baseGui{
 		
 			
 			glBegin(GL_LINE_LOOP);
-			ofSetColor(0xFFFFFF);
+			ofSetHexColor(0xFFFFFF);
 				glVertex2f(x, y);
 				glVertex2f(x + w, y);
 				glVertex2f(x + w, y + h);
@@ -741,7 +741,7 @@ class laserTracking : public baseGui{
 		//---------------------------
 		void drawClearZone(float x, float y, float w, float h){
 			ofNoFill();
-			ofSetColor(0xFF0000);
+			ofSetHexColor(0xFF0000);
 			
 			float xdraw = x + (clearZone.zoneDimensions[0].x * w);
 			float ydraw = y + (clearZone.zoneDimensions[0].y * h);
@@ -754,10 +754,10 @@ class laserTracking : public baseGui{
 		
 		//---------------------------		
 		void drawQuadSetupImage(float x, float y, float w, float h){
-			ofSetColor(0xFFFFFF);	
+			ofSetHexColor(0xFFFFFF);	
 			ofRect(0,0,w, h);
 			VideoFrame.draw(16, 12, w-32, h-24);
-			ofSetColor(0xFFFF00);	
+			ofSetHexColor(0xFFFF00);	
 			QUAD.draw(16, 12, w-32, h-24);
 		}
 		
@@ -769,17 +769,17 @@ class laserTracking : public baseGui{
 		guiQuad			QUAD;
 		coordWarping	CW;
 		
-		ofPoint2f 			warpSrc[4];
-		ofPoint2f 			warpDst[4];
+		ofVec2f 			warpSrc[4];
+		ofVec2f 			warpDst[4];
 		
-		ofPoint2f			smoothPos;
-		ofPoint2f			smoothVel;
-		ofPoint2f 			outPoints;
+		ofVec2f			smoothPos;
+		ofVec2f			smoothVel;
+		ofVec2f 			outPoints;
 		
-		ofCvColorImage  	VideoFrame;
-		ofCvColorImage 		WarpedFrame;
-		ofCvColorImage 		hsvFrame;
-		ofCvGrayscaleImage 	PresenceFrame;
+		ofxCvColorImage  	VideoFrame;
+		ofxCvColorImage 		WarpedFrame;
+		ofxCvColorImage 		hsvFrame;
+		ofxCvGrayscaleImage 	PresenceFrame;
 		ofCvContourFinder	Contour;
 		
 		ofImage				resizeMe;

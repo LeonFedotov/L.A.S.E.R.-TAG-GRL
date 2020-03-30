@@ -20,7 +20,7 @@ void guiQuad::releaseAllPoints(){
 //these should be in the range x(0-maxX) y(0-maxH) 
 //with 	width  = maxW
 //		height = maxH 
-void guiQuad::setQuadPoints( ofPoint2f * inPts ){
+void guiQuad::setQuadPoints( ofPoint * inPts ){
 		
 	for(int i = 0; i < 4; i++){
 		srcZeroToOne[i].x	= inPts[i].x;
@@ -158,7 +158,7 @@ bool guiQuad::updatePoint(float x, float y, float offsetX, float offsetY, float 
 
 //----------------------------------------------------
 //returns pts to width by height range 
-ofPoint2f * guiQuad::getScaledQuadPoints(float width, float height){
+ofPoint * guiQuad::getScaledQuadPoints(float width, float height){
 
 	for(int i = 0; i < 4; i++){
 		srcScaled[i].x = srcZeroToOne[i].x * width;
@@ -171,7 +171,7 @@ ofPoint2f * guiQuad::getScaledQuadPoints(float width, float height){
 
 //----------------------------------------------------
 //returns pts in 0-1 scale
-ofPoint2f * guiQuad::getQuadPoints(){
+ofPoint * guiQuad::getQuadPoints(){
 	return srcZeroToOne;
 }
 

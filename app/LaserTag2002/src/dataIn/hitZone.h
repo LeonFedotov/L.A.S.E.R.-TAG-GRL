@@ -2,7 +2,7 @@
 #define _HIT_ZONE_H
 
 #include "ofMain.h"
-#include "ofAddons.h"
+
 
 class hitZone{
 
@@ -16,8 +16,8 @@ class hitZone{
 		void setDimensions(float w, float h);
 		void updatePoints();
 		
-		ofVec2f zoneDimensions[2];
-		ofVec2f points[4];
+		ofPoint zoneDimensions[2];
+		ofPoint points[4];
 		bool bActive;
 		
 };

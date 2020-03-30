@@ -8,8 +8,6 @@
 // enjoy !
 
 #include "ofMain.h"
-#include "ofAddons.h"
-#include "ofVec3f.h"
 
 //--------------------------
 // constants

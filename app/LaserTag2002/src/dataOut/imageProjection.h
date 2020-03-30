@@ -2,7 +2,6 @@
 #define _IMG_PROJECTION_H
 
 #include "ofMain.h"
-#include "ofAddons.h"
 #include "guiQuad.h"
 
 //this class deals with the projection of lasertag
@@ -27,8 +26,8 @@ class imageProjection : public baseGui{
 		void setToolDimensions(float desiredW, float desiredH);	
 		void applyQuad();
 		
-		ofPoint2f *  getQuadPoints();
-		ofPoint2f *  getQuadPointsScaled();
+		ofPoint *  getQuadPoints();
+		ofPoint *  getQuadPointsScaled();
 		
 		int selectQuad(int x, int y, int xCheck, int yCheck, int w, int h, int hitArea);
 		bool updateQuad(int x, int y, int xCheck, int yCheck,  int w, int h);	
@@ -43,13 +42,13 @@ class imageProjection : public baseGui{
 		void drawProjectionMask(float x, float y, float w, float h);
 		
 		//our textures and preview textures
-		ofTextureAdv colorTexture;
-		ofTexture 	 colorPreviewTexture;
-		ofTextureAdv greyscaleTexture;
-		ofTexture 	 greyscalePreviewTexture;
+		ofTexture   colorTexture;
+		ofTexture 	colorPreviewTexture;
+		ofTexture   greyscaleTexture;
+		ofTexture 	greyscalePreviewTexture;
 		
 		guiQuad		 QUAD;
-		ofPoint2f 	 warpSrc[4];
+		ofPoint 	 warpSrc[4];
 		
 		bool bGreyscaleTexture;
 

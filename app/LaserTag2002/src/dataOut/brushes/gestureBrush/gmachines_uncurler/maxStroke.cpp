@@ -31,7 +31,7 @@ void maxStroke::addPoint(ofVec3f pt){
 
 //--------------------------------------------------------------
 void maxStroke::draw(){
-	ofSetColor(0xff0000);
+	ofSetHexColor(0xff0000);
 	glBegin(GL_LINE_STRIP);
 	
 	

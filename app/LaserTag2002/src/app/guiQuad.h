@@ -2,17 +2,17 @@
 #define _GUI_QUAD_
 
 #include "ofMain.h"
-#include "ofAddons.h"
 
-#include "ofCvConstants.h"
+#include "ofxXmlSettings.h"
+#include "ofxOpenCv.h"
 /////////////////////////
-//	REQUIRES ofPoint2f to  
+//	REQUIRES ofVec2f to  
 //	be defined as so:
 /*
 	typedef struct {
 		float x;
 		float y;
-	} ofPoint2f;
+	} ofVec2f;
 */
 /////////////////////////
 
@@ -32,15 +32,15 @@ class guiQuad : public baseGui{
 		//these should be in the range x(0-maxX) y(0-maxH) 
 		//with 	width  = maxW
 		//		height = maxH 
-		void setQuadPoints( ofPoint2f * inPts );		
+		void setQuadPoints( ofPoint * inPts );
 		
 		bool selectPoint(float x, float y, float offsetX, float offsetY, float width, float height, float hitArea);
 		bool updatePoint(float x, float y, float offsetX, float offsetY, float width, float height);
 		
 		//returns pts to width by height range 
-		ofPoint2f * getScaledQuadPoints(float width, float height);
+		ofPoint * getScaledQuadPoints(float width, float height);
 		//returns pts in 0-1 scale
-		ofPoint2f * getQuadPoints();		
+		ofPoint * getQuadPoints();		
 		void saveToFile(string filePath, string newQuadName);
 		void saveToFile(string filePath);
 		void draw(float x, float y, float width, float height, int red, int green, int blue, int thickness);
@@ -48,9 +48,9 @@ class guiQuad : public baseGui{
 
 		
 	protected:
-		ofXML	xml;
-		ofPoint2f srcZeroToOne[4];
-		ofPoint2f srcScaled[4];
+		ofxXmlSettings	xml;
+		ofPoint srcZeroToOne[4];
+		ofPoint srcScaled[4];
 		string quadName;
 		int selected;
 };

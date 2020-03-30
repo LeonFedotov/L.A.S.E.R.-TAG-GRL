@@ -6,7 +6,7 @@ coordWarping::coordWarping(){
 }
 
 //---------------------------
-void coordWarping::calculateMatrix(ofPoint2f src[4], ofPoint2f dst[4]){
+void coordWarping::calculateMatrix(ofPoint src[4], ofPoint dst[4]){
 
 	cvSetZero(translate);
 	for (int i = 0; i < 4; i++){
@@ -16,17 +16,17 @@ void coordWarping::calculateMatrix(ofPoint2f src[4], ofPoint2f dst[4]){
 		cvdst[i].y = dst[i].y;
 	}
 	
-	cvWarpPerspectiveQMatrix(cvsrc, cvdst, translate);  // calculate homography
-	
+	cvWarpPerspective(cvsrc, cvdst, translate);  // calculate homography
+
 	int n       = translate->cols;
 	float *data = translate->data.fl;
 
 }
 
 //---------------------------		
-ofPoint2f coordWarping::transform(float xIn, float yIn){
+ofPoint coordWarping::transform(float xIn, float yIn){
 
-	ofPoint2f out;
+	ofPoint out;
 
 	float *data = translate->data.fl;
 	

@@ -68,7 +68,7 @@ void graffLetter::setBrushWidth(int width){
 
 
 //----------------------------------------------
-void graffLetter::setupBrush(ofCvGrayscaleImage &brush, int width){
+void graffLetter::setupBrush(ofxCvGrayscaleImage &brush, int width){
 	brush.allocate(width,width);
 	unsigned char * temp = new unsigned char[width*width];
 	float midPt 	= (float)width/2.0f;
@@ -89,7 +89,7 @@ void graffLetter::setupBrush(ofCvGrayscaleImage &brush, int width){
 }
 
 //----------------------------------------------
-void graffLetter::setupShadowBrush(ofCvGrayscaleImage &brush, int width){
+void graffLetter::setupShadowBrush(ofxCvGrayscaleImage &brush, int width){
 	
 	brush.allocate(width,width);
 	unsigned char * temp = new unsigned char[width*width];
@@ -140,12 +140,15 @@ void graffLetter::update(){
 	cvImgBottom -= cvImgBlack;
 
 	cvImgMix = cvImgTop;
-	cvImgMix.composite(cvImgBottom, cvBottomLayerMask);
+    // toDo
+	//cvImgMix.composite(cvImgBottom, cvBottomLayerMask);
 }
+
+
 
 //----------------------------------------------
 unsigned char * graffLetter::getImageAsPixels(){
-	return cvImgMix.getPixels();
+	return cvImgMix.getPixels().getData();
 }
 
 //----------------------------------------------
@@ -155,7 +158,7 @@ void graffLetter::newLetter(){
 	cvImgBottom += cvImgWhite;
 	cvImgBottom -= cvImgBlack;
 	
-	cvImgTop.composite(cvImgBottom, cvBottomLayerMask);
+	//cvImgTop.composite(cvImgBottom, cvBottomLayerMask);
 	cvImgWhite.set(0);
 	cvImgBlack.set(0);
 	cvBottomLayerMask.set(0);
@@ -227,25 +230,25 @@ void graffLetter::addLine(float x1, float y1, float x2, float y2){
 	}
 	
 	// white
-	for (int j = 0; j < nDivs; j++){
-		cvImgWhite.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.5f), y1 + dy*j-(brushWidth*0.5f));
-		cvBottomLayerMask.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.5f), y1 + dy*j-(brushWidth*0.5f));
-	}
-	
-	// offset!
-	for (int j = 0; j < nDivs; j++){
-		cvImgWhite.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.75f), y1 + dy*j-(brushWidth*0.75f));
-		cvBottomLayerMask.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.75f), y1 + dy*j-(brushWidth*0.75f));
-	}
-	
-	cvBottomLayerMask.addIntoMe(cvDropShadowBrush, x1 -(brushWidth*1.5f), y1 -(brushWidth*1.5f));
-	
-	
-	
-	// black 
-	for (int j = 0; j < nDivs; j++){
-		cvImgBlack.addIntoMe(cvBlackBrush, x1 + dx*j-(brushWidth*(17.0/40.0)), y1 + dy*j-(brushWidth*(17.0/40.0)));
-	}
+//	for (int j = 0; j < nDivs; j++){
+//		cvImgWhite.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.5f), y1 + dy*j-(brushWidth*0.5f));
+//		cvBottomLayerMask.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.5f), y1 + dy*j-(brushWidth*0.5f));
+//	}
+//
+//	// offset!
+//	for (int j = 0; j < nDivs; j++){
+//		cvImgWhite.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.75f), y1 + dy*j-(brushWidth*0.75f));
+//		cvBottomLayerMask.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.75f), y1 + dy*j-(brushWidth*0.75f));
+//	}
+//
+//	cvBottomLayerMask.addIntoMe(cvDropShadowBrush, x1 -(brushWidth*1.5f), y1 -(brushWidth*1.5f));
+//
+//
+//
+//	// black
+//	for (int j = 0; j < nDivs; j++){
+//		cvImgBlack.addIntoMe(cvBlackBrush, x1 + dx*j-(brushWidth*(17.0/40.0)), y1 + dy*j-(brushWidth*(17.0/40.0)));
+//	}
 		
 }
 
@@ -262,26 +265,26 @@ void graffLetter::addDrip(float x1, float y1, float x2, float y2){
 	
 	
 	
-	// white
-	for (int j = 0; j < nDivs; j++){
-		cvImgWhite.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(5.0/40.0)), y1 + dy*j-(brushWidth*(5.0/40.0)));
-		cvBottomLayerMask.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(5.0/40.0)), y1 + dy*j-(brushWidth*(5.0/40.0)));
-	}
-	
-	// offset!
-	for (int j = 0; j < nDivs; j++){
-		cvImgWhite.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(10.5/40.0)), y1 + dy*j-(brushWidth*(10.5/40.0)));
-		cvBottomLayerMask.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(7.5/40.0)), y1 + dy*j-(brushWidth*(7.5/40.0)));
-	}
-	
-	cvBottomLayerMask.addIntoMe(cvDripDropShadowBrush, x1 -(brushWidth*(15/40.0)), y1 -(brushWidth*(15/40.0)));
-	
-	
-	
-	// black 
-	for (int j = 0; j < nDivs; j++){
-		cvImgBlack.addIntoMe(cvDripBlackBrush, x1 + dx*j-(brushWidth*(4.25/40.0)), y1 + dy*j-(brushWidth*(4.25/40.0)));
-	}
+//	// white
+//	for (int j = 0; j < nDivs; j++){
+//		cvImgWhite.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(5.0/40.0)), y1 + dy*j-(brushWidth*(5.0/40.0)));
+//		cvBottomLayerMask.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(5.0/40.0)), y1 + dy*j-(brushWidth*(5.0/40.0)));
+//	}
+//	
+//	// offset!
+//	for (int j = 0; j < nDivs; j++){
+//		cvImgWhite.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(10.5/40.0)), y1 + dy*j-(brushWidth*(10.5/40.0)));
+//		cvBottomLayerMask.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(7.5/40.0)), y1 + dy*j-(brushWidth*(7.5/40.0)));
+//	}
+//	
+//	cvBottomLayerMask.addIntoMe(cvDripDropShadowBrush, x1 -(brushWidth*(15/40.0)), y1 -(brushWidth*(15/40.0)));
+//	
+//	
+//	
+//	// black 
+//	for (int j = 0; j < nDivs; j++){
+//		cvImgBlack.addIntoMe(cvDripBlackBrush, x1 + dx*j-(brushWidth*(4.25/40.0)), y1 + dy*j-(brushWidth*(4.25/40.0)));
+//	}
 	
 }
 

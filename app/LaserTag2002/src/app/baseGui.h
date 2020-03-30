@@ -2,7 +2,7 @@
 #define _BASE_GUI_
 
 #include "ofMain.h"
-#include "ofAddons.h"
+
 
 static string commonText = "";
 static int	textFade = 0;
@@ -14,7 +14,7 @@ class baseGui
 		
 		// ------------------------
 		virtual void useTrueTypeFont(string font, int fontSize){
-			TTF.loadFont(font, fontSize);
+			TTF.load(font, fontSize);
 			bUseTTF = true;
 		}
 			

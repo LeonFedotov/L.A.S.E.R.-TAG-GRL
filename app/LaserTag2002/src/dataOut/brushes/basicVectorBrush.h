@@ -2,7 +2,7 @@
 #define _BASIC_VECTOR_BRUSH_H
 
 #include "ofMain.h"
-#include "ofAddons.h"
+
 
 #include "baseBrush.h"
 
@@ -10,7 +10,7 @@
 #define MAX_STROKE_PTS 512
 
 typedef struct{
-	ofVec2f pts[MAX_STROKE_PTS];
+	ofPoint pts[MAX_STROKE_PTS];
 	float width[MAX_STROKE_PTS];
 	int num;
 	int r;
