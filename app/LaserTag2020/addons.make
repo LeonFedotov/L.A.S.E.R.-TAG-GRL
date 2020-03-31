@@ -1,4 +1,0 @@
-ofxGui
-ofxNetwork
-ofxOpenCv
-ofxXmlSettings
