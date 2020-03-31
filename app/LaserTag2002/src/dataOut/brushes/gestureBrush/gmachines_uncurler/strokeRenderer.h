@@ -2,6 +2,7 @@
 #define _STROKE_RENDERER
 
 #include "ofMain.h"
+#include "ofVec3f.h"
 
 
 void renderStroke(ofVec3f * pts, int nPts, bool bUseZasWidth, float width);

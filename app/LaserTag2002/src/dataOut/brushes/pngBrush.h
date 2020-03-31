@@ -2,7 +2,7 @@
 #define _PNG_BRUSH_H
 
 #include "ofMain.h"
-
+#include "ofAddons.h"
 
 #include "drips.h"
 #include "baseBrush.h"
@@ -38,7 +38,7 @@ class pngBrush : public baseBrush{
 		void drawBrushColor(float x, float y, int w, int h);
 		
 	
-		ofDirectory DL;
+		ofDirList DL;
 		drips DRIPS;
 	
 		ofImage IMG;

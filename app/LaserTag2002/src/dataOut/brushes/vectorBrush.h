@@ -2,7 +2,7 @@
 #define _VECTOR_BRUSH_H
 
 #include "ofMain.h"
-
+#include "ofAddons.h"
 
 #include "baseBrush.h"
 
@@ -12,10 +12,10 @@
 #define NUM_BRUSH_MODES 4
 
 typedef struct{
-	ofPoint pts[MAX_STROKE_PTS];
-	ofPoint nrm[MAX_STROKE_PTS];
+	ofVec2f pts[MAX_STROKE_PTS];
+	ofVec2f nrm[MAX_STROKE_PTS];
 	float width[MAX_STROKE_PTS];
-	ofPoint vec;
+	ofVec2f vec;
 	int num;
 	int r;
 	int g; 

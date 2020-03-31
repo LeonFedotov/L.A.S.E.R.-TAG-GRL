@@ -2,7 +2,7 @@
 #define _BASE_BRUSH_H
 
 #include "ofMain.h"
-
+#include "ofAddons.h"
 
 //inhereit me to add your own brush
 class baseBrush{

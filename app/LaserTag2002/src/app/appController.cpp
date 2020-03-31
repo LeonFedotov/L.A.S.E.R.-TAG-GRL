@@ -34,9 +34,9 @@ void appController::setup(){
 		
 		
 	/////// GUI STUFF ////
-	settingsImg.load("sys/settings.png");
-	noticeImg.load("sys/criticalDontEditOrDelete.png");
-//	useTrueTypeFont("fonts/courbd.ttf", 10);
+	settingsImg.loadImage("sys/settings.png");
+	noticeImg.loadImage("sys/criticalDontEditOrDelete.png");
+	useTrueTypeFont("fonts/courbd.ttf", 10);
 	LT.useTrueTypeFont("fonts/courbd.ttf", 10);
 	GUI.useTrueTypeFont("fonts/courbd.ttf", 10);
 	
@@ -70,7 +70,7 @@ void appController::setup(){
 	updateBrushSettings(true);
 
 	//see if there is a video from GRL to display.
-	webMovieLoaded = VP.load("http://graffitiresearchlab.com/lasertag2000/helloFromGRL.php?"+ofToString(ofRandom(10000, 50000)));
+	webMovieLoaded = VP.loadMovie("http://graffitiresearchlab.com/lasertag2000/helloFromGRL.php?"+ofToString(ofRandom(10000, 50000)));
 	if(webMovieLoaded)VP.play();
 }
 
@@ -93,7 +93,7 @@ void appController::setupBrushes(int w, int h){
 void appController::loadSettings(){
 
 	//we read our settings in 
-	//setCommonText("status: loading settings from xml");
+	setCommonText("status: loading settings from xml");
 	GUI.readFromFile(ofToDataPath("settings/settings.xml"));
 
 	//the order of these settings is the order they are displayed.
@@ -204,7 +204,7 @@ void appController::mainLoop(){
 	//it will show the current setting for a few seconds
 	if(ofGetElapsedTimeMillis() - keyTimer > STATUS_SHOW_TIME )keyTimer = 0;
 
-	if(webMovieLoaded)VP.update();
+	if(webMovieLoaded)VP.idleMovie();
 }
 
 
@@ -576,7 +576,7 @@ void appController::draw(){
 	
 		//make sure we have a black background
 		ofSetColor(0,0,0);
-		ofDrawRectangle(0, 0, 1024, 768);
+		ofRect(0, 0, 1024, 768);
 		
 		//if we are a vector brush
 		if( brushes[brushMode]->getIsVector() ){
@@ -586,7 +586,7 @@ void appController::draw(){
 
 		if(toggleGui)IP.drawProjectionToolHandles(0, 0, 1024, 768, false, true);
 		
-		ofSetHexColor(0x555555);
+		ofSetColor(0x555555);
 		if(toggleGui)ofDrawBitmapString("fps: "+ofToString(ofGetFrameRate()), 10, 740);
 		if(keyTimer > 0){
 			ofDrawBitmapString("press '-' key to return to main view", 10, 704);
@@ -594,7 +594,7 @@ void appController::draw(){
 		}
 
 		if(webMovieLoaded){
-			ofSetHexColor(0xFFFFFF);
+			ofSetColor(0xFFFFFF);
 			VP.draw(20, 20, 984, 728);
 		}
 	}
@@ -606,7 +606,7 @@ void appController::draw(){
 		
 		//make sure we have a black background
 		ofSetColor(0,0,0);
-		ofDrawRectangle(1024, 0, 1024, 768);
+		ofRect(1024, 0, 1024, 768);
 		
 		//if we are a vector brush
 		if( brushes[brushMode]->getIsVector() ){
@@ -618,7 +618,7 @@ void appController::draw(){
 		if(toggleGui)IP.drawProjectionToolHandles(1024, 0, 1024, 768, false, true);
 
 		if(webMovieLoaded){		
-			ofSetHexColor(0xFFFFFF);
+			ofSetColor(0xFFFFFF);
 			VP.draw(20, 20, 984, 728);
 			VP.draw(1044, 20, 984, 728);
 		}
@@ -684,7 +684,7 @@ void appController::drawStatusMessage(){
 		} 
 				
 		ofSetColor(txtFade*2, txtFade*2, txtFade*2);
-		ofDrawRectangle(0, 752, 800, 16);
+		ofRect(0, 752, 800, 16);
 		
 		ofSetColor(txtFade, 0, 0);
 		drawText(getCommonText(), 5, 762);

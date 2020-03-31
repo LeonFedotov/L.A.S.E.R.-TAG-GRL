@@ -119,10 +119,10 @@ void pngBrush::dripsSettings(bool doDrip, int dripFreq, float speed, int directi
 //-----------------------------------------------------
 void pngBrush::updateTmpImage(float _brushWidth){
 	
-    TMP = IMG;
+	TMP.clone(IMG);
 	
-	float tmpW 		= TMP.getWidth();
-	float tmpH 		= TMP.getHeight();
+	float tmpW 		= TMP.width;
+	float tmpH 		= TMP.height;
 	
 	float ratio 	= (float)_brushWidth/tmpW;
 		
@@ -154,7 +154,7 @@ void pngBrush::update(){
 
 //-----------------------------------------------------
 void pngBrush::drawTool(int x, int y, int w, int h){
-	ofSetHexColor(0xFFFFFF);
+	ofSetColor(0xFFFFFF);
 	IMG.draw(x,y,w,h);
 }
 
@@ -199,7 +199,7 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
 	}
 				
 	//get the pixels of the brush
-	unsigned char * brushPix = TMP.getPixels().getData();
+	unsigned char * brushPix = TMP.getPixels();
 				
 	//if no distance is to be travelled
 	//draw only one point
@@ -211,19 +211,19 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
 		// we do - TMP.width/2 because we want the brushNumber to be
 		// drawn from the center
 		if(newStroke){
-			tx = startX - TMP.getWidth()/2;
-			ty = startY - TMP.getHeight()/2;
+			tx = startX - TMP.width/2;
+			ty = startY - TMP.height/2;
 		}else{
-			tx = (oldX + (int)(dx*(float)i)) - TMP.getWidth()/2;
-			ty = (oldY + (int)(dy*(float)i)) - TMP.getHeight()/2;
+			tx = (oldX + (int)(dx*(float)i)) - TMP.width/2;
+			ty = (oldY + (int)(dy*(float)i)) - TMP.height/2;
 		}
 						
 		//this is what we use to move through the
 		//brushNumber array									
 		int tPix = 0;
 		
-		int destX = (TMP.getWidth()  + tx);
-		int destY = (TMP.getHeight() + ty);
+		int destX = (TMP.width  + tx);
+		int destY = (TMP.height + ty);	
 						
 		//lets check that we don't draw out outside the projected
 		//image
@@ -242,12 +242,12 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
 		//same here for y - we need to figure out the y offset
 		//for the cropped brush
 		if(ty < 0){
-			tPix    = -ty * TMP.getWidth();
+			tPix    = -ty * TMP.width; 
 			ty 		= 0;
 		}
 						
 		//this is for the right hand side cropped brush 
-		int offSetCorrectionRight = ((TMP.getWidth() + tx) -  destX);
+		int offSetCorrectionRight = ((TMP.width + tx) -  destX);	
 		tPix += offSetCorrectionLeft;
 
 		//some vars we are going to need
@@ -297,7 +297,7 @@ unsigned char * pngBrush::getImageAsPixels(){
 //-----------------------------------------------------
 void pngBrush::drawBrushColor(float x, float y, int w, int h){
 	ofSetColor(red, green, blue);
-	ofDrawRectangle(x,y,w,h);
+	ofRect(x,y,w,h);
 }
 		
 	

@@ -6,11 +6,13 @@
 // hand crafted on the streets of barcelona
 
 #include "ofMain.h"
-
+#include "ofAddons.h"
+#include "ofVec3f.h"
 
 //--------------------------
 // constants
-#include "ofxOpenCv.h"
+#include "ofCvConstants.h"
+#include "ofCvGrayscaleImage.h"
 #include "baseBrush.h"
 
 #define MAX_DRIP_PARTICLES 		150
@@ -38,8 +40,8 @@ class graffLetter : public baseBrush{
 	protected:
 		void newLetter();
 		void addLine(float x1, float y1, float x2, float y2);
-		void setupBrush(ofxCvGrayscaleImage &brush, int width);
-		void setupShadowBrush(ofxCvGrayscaleImage &brush, int width);
+		void setupBrush(ofCvGrayscaleImage &brush, int width);
+		void setupShadowBrush(ofCvGrayscaleImage &brush, int width);
 		void addDrip(float x1, float y1, float x2, float y2);
 		
 		dripParticle		particles[MAX_DRIP_PARTICLES];
@@ -54,24 +56,24 @@ class graffLetter : public baseBrush{
 		bool 				bAddParticles;
 
 		
-		ofxCvGrayscaleImage	cvImgWhite;
-		ofxCvGrayscaleImage	cvImgBlack;
-		ofxCvGrayscaleImage	cvImgBottom;
-		ofxCvGrayscaleImage	cvImgTop;
-		ofxCvGrayscaleImage	cvImgMix;
+		ofCvGrayscaleImage	cvImgWhite;
+		ofCvGrayscaleImage	cvImgBlack;
+		ofCvGrayscaleImage	cvImgBottom;
+		ofCvGrayscaleImage	cvImgTop;
+		ofCvGrayscaleImage	cvImgMix;
 		
 		
-		ofxCvGrayscaleImage	cvWhiteBrush;
-		ofxCvGrayscaleImage	cvBlackBrush;
+		ofCvGrayscaleImage	cvWhiteBrush;
+		ofCvGrayscaleImage	cvBlackBrush;
 		
-		ofxCvGrayscaleImage	cvDripWhiteBrush;
-		ofxCvGrayscaleImage	cvDripBlackBrush;
-		ofxCvGrayscaleImage	cvDripDropShadowBrush;
+		ofCvGrayscaleImage	cvDripWhiteBrush;
+		ofCvGrayscaleImage	cvDripBlackBrush;
+		ofCvGrayscaleImage	cvDripDropShadowBrush;
 		
-		ofxCvGrayscaleImage	cvDropShadowBrush;
+		ofCvGrayscaleImage	cvDropShadowBrush;
 		
-		ofxCvGrayscaleImage	cvTopLayerMask;
-		ofxCvGrayscaleImage  cvBottomLayerMask;
+		ofCvGrayscaleImage	cvTopLayerMask;
+		ofCvGrayscaleImage  cvBottomLayerMask;
 				
 
 };

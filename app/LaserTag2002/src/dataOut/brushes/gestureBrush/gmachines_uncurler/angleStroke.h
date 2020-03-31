@@ -3,6 +3,7 @@
 
 
 #include "ofMain.h"
+#include "ofVec3f.h"
 #include "maxStroke.h"
 
 class angleStroke {

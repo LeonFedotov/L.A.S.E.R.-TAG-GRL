@@ -165,7 +165,7 @@ void swimStroke::update(){
 void swimStroke::draw(){
 	if(nPts == 0)return;
 	
-	//ofSetHexColor(0xffffff);
+	//ofSetColor(0xffffff);
 	ofVec3f pt = startPosition;
 	
 	renderStroke(angles, widths, nPts, startPosition, lengthSection);

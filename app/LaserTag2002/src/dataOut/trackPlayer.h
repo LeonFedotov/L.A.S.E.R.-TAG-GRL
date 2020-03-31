@@ -2,6 +2,7 @@
 #define _TRACK_PLAYER_
 
 #include "ofMain.h"
+#include "ofAddons.h"
 
 class trackPlayer{
 	public:
@@ -27,7 +28,7 @@ class trackPlayer{
 		int  numTracks, whichTrack;
 		float targetPitch, updatePct, currentPitch;
 	
-		ofDirectory DLIST;
+		ofDirList DLIST;
 		ofSoundPlayer track;
 };
 

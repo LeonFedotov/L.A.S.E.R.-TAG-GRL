@@ -287,7 +287,7 @@ void vectorBrush::drawArrowFAT(int numStrokes, float offset){
 					
 	for(int i = 0; i <= numStrokes; i++){
 		glBegin(GL_QUAD_STRIP);		
-		ofSetHexColor(0xFF0AC2);
+		ofSetColor(0xFF0AC2);
 							
 		int numPts = stroke[i].num;				
 			

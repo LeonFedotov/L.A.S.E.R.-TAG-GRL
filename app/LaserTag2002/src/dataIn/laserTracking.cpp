@@ -70,8 +70,8 @@ bool laserTracking::isClearZoneHit(){
 void laserTracking::setupCamera(int deviceNumber, int width, int height){
 	VG.setDeviceID(deviceNumber);
 	VG.initGrabber(width, height);
-	W = VG.getWidth();
-	H = VG.getHeight();
+	W = VG.width;
+	H = VG.height;			
 	bCameraSetup = true;
 	noLaserCounter  = 0;
 	distDifference  = 0.0;
@@ -81,11 +81,11 @@ void laserTracking::setupCamera(int deviceNumber, int width, int height){
 //requires a restart
 //---------------------------		
 void laserTracking::setupVideo(string videoPath){
-	VP.load(videoPath);
+	VP.loadMovie(videoPath);
 	VP.play(); 
 	VP.setUseTexture(true);
-	W = VP.getWidth();
-	H = VP.getHeight();
+	W = VP.width;
+	H = VP.height;
 	bVideoSetup = true;
 	noLaserCounter = 0;
 	distDifference  = 0.0;
@@ -169,15 +169,11 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 	
 	//either grab pixels from video or grab from camera
 	if(bVideoSetup){
-		VP.update();
-//        if(VP.isFrameNew()){
-            pixCam 	= VP.getPixels().getData();
-//        }
+		VP.idleMovie();	
+		pixCam 	= VP.getPixels();
 	}else{
-		VG.update();
-//        if(VG.isFrameNew()){
-            pixCam 	= VG.getPixels().getData();
-//        }
+		VG.grabFrame();
+		pixCam 	= VG.getPixels();		
 	}
 	
 	
@@ -201,13 +197,13 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 				
 	//Get pixels and convert to hue sat and value;
 	hsvFrame = VideoFrame;
-    hsvFrame.convertRgbToHsv();
+	hsvFrame.rgbToHsv();
 	
 	//okay time to look for our laser!
 	//based on hue sat and val
 	int totalPixels = W*H*3;
 	
-	unsigned char * pix = hsvFrame.getPixels().getData();
+	unsigned char * pix = hsvFrame.getPixels();
 				
 	float h 		= hue 		* 255;
 	float ht		= hueThresh * 255; 
@@ -276,8 +272,8 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 							
 		//Get pixels and convert to hue sat and value;
 		hsvFrame = WarpedFrame;
-		hsvFrame.convertRgbToHsv();
-		pix = hsvFrame.getPixels().getData();
+		hsvFrame.rgbToHsv();
+		pix = hsvFrame.getPixels();
 		
 		k = 0;
 						
@@ -308,7 +304,7 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 		
 	}else{
 	
-		ofPoint * pts =  QUAD.getScaledQuadPoints(W, H);
+		ofPoint2f * pts =  QUAD.getScaledQuadPoints(W, H);
 	
 		float ptsx[4] = {pts[0].x, pts[1].x, pts[2].x, pts[3].x};
 		float ptsy[4] = {pts[0].y, pts[1].y, pts[2].y, pts[3].y};
@@ -410,7 +406,7 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 		float tmpX		= Contour.blobs[0].centroid.x/(float)W;
 		float tmpY		= Contour.blobs[0].centroid.y/(float)H;
 		
-		ofPoint dst[4];
+		ofPoint2f dst[4];
 		
 		dst[0].x = 0;
 		dst[0].y = 0;
@@ -426,10 +422,10 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 
 		if(!accurateQuad){
 		
-			ofPoint *  src = QUAD.getQuadPoints();
+			ofPoint2f *  src = QUAD.getQuadPoints();
 
 			CW.calculateMatrix(src, dst);
-			ofPoint out = CW.transform(tmpX, tmpY);
+			ofPoint2f out = CW.transform(tmpX, tmpY);
 			
 			tmpX = out.x;
 			tmpY = out.y;
@@ -488,25 +484,25 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 
 //if you want to warp the coords to another quad
 //-----------------------------------------------------------------------
-void laserTracking::getWarpedCoordinates(ofPoint * dst, float *warpedX, float *warpedY){
+void laserTracking::getWarpedCoordinates(ofPoint2f * dst, float *warpedX, float *warpedY){
 		
-	ofPoint srcTmp[4];
+	ofPoint2f srcTmp[4];
 		
-    srcTmp[0].x = 0;
-    srcTmp[0].y = 0;
+		srcTmp[0].x = 0;
+		srcTmp[0].y = 0;
 
-    srcTmp[1].x = 1;
-    srcTmp[1].y = 0;
+		srcTmp[1].x = 1;
+		srcTmp[1].y = 0;
 
-    srcTmp[2].x = 1;
-    srcTmp[2].y = 1;
-    
-    srcTmp[3].x = 0;
-    srcTmp[3].y = 1;
+		srcTmp[2].x = 1;
+		srcTmp[2].y = 1;
+		
+		srcTmp[3].x = 0;
+		srcTmp[3].y = 1;
 		
 
 	CW.calculateMatrix(srcTmp, dst);
-	ofVec2f out = CW.transform(laserX, laserY);
+	ofPoint2f out = CW.transform(laserX, laserY);
 	
 	*warpedX = out.x;
 	*warpedY = out.y;
@@ -605,21 +601,21 @@ void laserTracking::draw(float x, float y){
 	//lets draw our openCV frames
 	//with a nice border around them
 	ofNoFill();
-	ofSetHexColor(0xFFFFFF);
+	ofSetColor(0xFFFFFF);	
 	VideoFrame.draw(0, 0, 320, 240);
-	ofDrawRectangle(0,0,320,240);
+	ofRect(0,0,320,240);
 	
 	if(accurateQuad)WarpedFrame.draw(320,0, 320, 240);
 	else PresenceFrame.draw(320,0, 320, 240);
 	ofNoFill();
-	ofDrawRectangle(320,0,320,240);
+	ofRect(320,0,320,240);
 	ofFill();
 	
 	//lets draw the contours to show our blobs!
 	glPushMatrix();
 		glTranslatef(320, 0, 0);
 		glScalef(320.0/(float)W, 240.0/(float)H, 1);
-		ofSetHexColor(0xFF00FF);
+		ofSetColor(0xFF00FF);
 		//Contour.draw();
 	glPopMatrix();
 	
@@ -652,7 +648,7 @@ void laserTracking::drawColorRange(float x, float y, float w, float h){
 
 	
 	glBegin(GL_LINE_LOOP);
-	ofSetHexColor(0xFFFFFF);
+	ofSetColor(0xFFFFFF);
 		glVertex2f(x, y);
 		glVertex2f(x + w, y);
 		glVertex2f(x + w, y + h);
@@ -665,22 +661,22 @@ void laserTracking::drawColorRange(float x, float y, float w, float h){
 //---------------------------
 void laserTracking::drawClearZone(float x, float y, float w, float h){
 	ofNoFill();
-	ofSetHexColor(0xFF0000);
+	ofSetColor(0xFF0000);
 	
 	float xdraw = x + (clearZone.zoneDimensions[0].x * w);
 	float ydraw = y + (clearZone.zoneDimensions[0].y * h);
 	float wdraw =      clearZone.zoneDimensions[1].x * w;
 	float hdraw =      clearZone.zoneDimensions[1].y * h;
 
-	ofDrawRectangle(xdraw, ydraw, wdraw, hdraw);
+	ofRect(xdraw, ydraw, wdraw, hdraw); 				
 	ofFill();
 }
 
 //---------------------------		
 void laserTracking::drawQuadSetupImage(float x, float y, float w, float h){
-	ofSetHexColor(0xFFFFFF);
-	ofDrawRectangle(0,0,w, h);
+	ofSetColor(0xFFFFFF);	
+	ofRect(0,0,w, h);
 	VideoFrame.draw(16, 12, w-32, h-24);
-	ofSetHexColor(0xFFFF00);
+	ofSetColor(0xFFFF00);	
 	QUAD.draw(16, 12, w-32, h-24);
 }

@@ -2,7 +2,7 @@
 #define _DRIP_H
 
 #include "ofMain.h"
-
+#include "ofAddons.h"
 #include "miscUtils.h"
 
 #define MAX_DRIPS 800
@@ -23,10 +23,10 @@ class drip{
 		bool isDripping();
 		
 		
-		ofPoint pre;	//previous position
-		ofPoint pos;	//our position
-		ofPoint dst;	//our destination (target)
-		ofPoint vel;	//velocity
+		ofVec2f pre;	//previous position
+		ofVec2f pos;	//our position
+		ofVec2f dst;	//our destination (target)
+		ofVec2f vel;	//velocity
 				
 		int dripWidth;
 		int dripLength;

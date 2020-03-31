@@ -3,6 +3,8 @@
 
 
 #include "ofMain.h"
+#include "ofVec3f.h"
+
 
 class maxStroke {
 	

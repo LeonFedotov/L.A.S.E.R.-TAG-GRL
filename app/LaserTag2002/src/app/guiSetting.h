@@ -2,7 +2,7 @@
 #define _GUI_SETTING_
 
 #include "ofMain.h"
-
+#include "ofAddons.h"
 
 //float/int/bool settings control
 

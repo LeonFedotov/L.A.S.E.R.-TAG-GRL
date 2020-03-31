@@ -2,8 +2,9 @@
 #define _LASER_SENDING_
 
 #include "ofMain.h"
-#include "ofxTCPServer.h"
-#include "ofxUDPManager.h"
+#include "ofAddons.h"
+#include "ofTCPServer.h"
+#include "udpManager.h"
 
 class laserSending{
 	public:
@@ -35,8 +36,8 @@ class laserSending{
 		bool tcpSetup;
 		int  numConnected;
 	
-		ofxTCPServer TCP;
-		ofxUDPManager  UDP;
+		ofTCPServer TCP;
+		UDPManager  UDP;
 };
 
 #endif

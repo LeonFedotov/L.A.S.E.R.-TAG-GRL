@@ -36,8 +36,8 @@ void imageProjection::setup(int _width, int _height){
 	greyscalePreviewTexture.allocate(width, height, GL_LUMINANCE);
 	greyscaleTexture.allocate(width, height, GL_LUMINANCE);
 	
-//	greyscaleTexture.setPoints(0,0,640,0,640,480,0,480);			
-//	colorTexture.setPoints(0,0,640,0,640,480,0,480);				
+	greyscaleTexture.setPoints(0,0,640,0,640,480,0,480);			
+	colorTexture.setPoints(0,0,640,0,640,480,0,480);				
 }
 
 
@@ -136,28 +136,28 @@ void imageProjection::setToolDimensions(float desiredW, float desiredH){
 //-----------------------------------------------------		
 void imageProjection::applyQuad(){
 
-	ofPoint * tmpPts = QUAD.getScaledQuadPoints(width, height);
+	ofPoint2f * tmpPts = QUAD.getScaledQuadPoints(width, height);
 	
-//	colorTexture.setPoints(  	tmpPts[0].x , tmpPts[0].y ,
-//						tmpPts[1].x , tmpPts[1].y ,
-//						tmpPts[2].x , tmpPts[2].y ,
-//						tmpPts[3].x , tmpPts[3].y );
-//
-//	greyscaleTexture.setPoints(  	tmpPts[0].x , tmpPts[0].y ,
-//						tmpPts[1].x , tmpPts[1].y ,
-//						tmpPts[2].x , tmpPts[2].y ,
-//						tmpPts[3].x , tmpPts[3].y );
+	colorTexture.setPoints(  	tmpPts[0].x , tmpPts[0].y , 
+						tmpPts[1].x , tmpPts[1].y , 
+						tmpPts[2].x , tmpPts[2].y , 
+						tmpPts[3].x , tmpPts[3].y );
+						
+	greyscaleTexture.setPoints(  	tmpPts[0].x , tmpPts[0].y , 
+						tmpPts[1].x , tmpPts[1].y , 
+						tmpPts[2].x , tmpPts[2].y , 
+						tmpPts[3].x , tmpPts[3].y );	
 					
 														
 }
 
  //-----------------------------------------------------		
-ofPoint *  imageProjection::getQuadPoints(){
+ofPoint2f *  imageProjection::getQuadPoints(){
 	return QUAD.getQuadPoints();
 }
 
  //-----------------------------------------------------		
-ofPoint *  imageProjection::getQuadPointsScaled(){
+ofPoint2f *  imageProjection::getQuadPointsScaled(){
 	return QUAD.getScaledQuadPoints(width, height);
 }
 
@@ -230,7 +230,7 @@ void imageProjection::drawMiniProjectionTool(float x, float y, bool showOutline,
 	glPushMatrix();
 		glTranslatef(x, y, 0);
 		glScalef(scaleX, scaleY, 1.0);
-		ofSetHexColor(0xFFFFFF);
+		ofSetColor(0xFFFFFF);
 		if(showOutline){
 			ofNoFill();
 			ofRect(0,0,width, height);
@@ -243,11 +243,11 @@ void imageProjection::drawMiniProjectionTool(float x, float y, bool showOutline,
 			float dim = brightness *0.01;
 			if(bGreyscaleTexture){
 				ofSetColor((float)red * dim, (float)green * dim, (float)blue * dim);
-				greyscaleTexture.draw(0, 0, greyscaleTexture.getWidth(), greyscaleTexture.getHeight());
+				greyscaleTexture.draw();
 			}
 			else{
 				ofSetColor(255.0 * dim, 255.0 * dim, 255.0 * dim);
-				colorTexture.draw(0, 0, colorTexture.getWidth(), colorTexture.getHeight());
+				colorTexture.draw();
 			}
 			ofDisableAlphaBlending();
 		}		
@@ -268,7 +268,7 @@ void imageProjection::drawProjectionToolHandles(float x, float y, float w, float
 	glPushMatrix();
 		glTranslatef(x, y, 0);
 		glScalef(sX, sY, 1.0);
-		ofSetHexColor(0xFFFFFF);
+		ofSetColor(0xFFFFFF);
 		if(showOutline){
 			ofNoFill();
 			ofRect(0,0,width, height);
@@ -286,10 +286,10 @@ void imageProjection::drawProjectionToolHandles(float x, float y, float w, float
 //-----------------------------------------------------
 void imageProjection::drawProjectionMask(float x, float y, float w, float h){
 	
-	ofPoint *pts = QUAD.getScaledQuadPoints(w, h);
+	ofPoint2f *pts = QUAD.getScaledQuadPoints(w, h);
 	
 	//we do a mask around the quad
-	ofSetHexColor(0x000000);
+	ofSetColor(0x000000);
 	ofBeginShape();
 		ofVertex(x, y);
 		ofVertex(x + w, y);
@@ -319,11 +319,11 @@ void imageProjection::drawProjectionTex(float x, float y, float w, float h){
 
 	if(bGreyscaleTexture){
 		ofSetColor((float)red * dim, (float)green * dim, (float)blue * dim);
-	 	greyscaleTexture.draw(0, 0, greyscaleTexture.getWidth(), greyscaleTexture.getHeight());
+	 	greyscaleTexture.draw();
 	}
 	else{
 		ofSetColor(255.0 * dim, 255.0 * dim, 255.0 * dim);
-		colorTexture.draw(0, 0, colorTexture.getWidth(), colorTexture.getHeight());
+		colorTexture.draw();
 	}		
 	ofDisableAlphaBlending();
 	glPopMatrix();
