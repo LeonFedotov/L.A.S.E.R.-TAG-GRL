@@ -151,9 +151,9 @@ void appController::loadSettings(){
 	
 	GUI.addTitle("Camera settings (restart app!)");
 	GUI.addSetting("Use camera", 				"USE_CAMERA", 			0, 0, 1, 1);	
-	GUI.addSetting("Camera #", 					"CAM_ID", 				0, 0, 900, 1);	
-	GUI.addSetting("Camera Width",				"CAM_WIDTH", 			320, 0, 900, 2);	
-	GUI.addSetting("Camera Height", 			"CAM_HEIGHT", 			240, 0, 900, 2);	
+	GUI.addSetting("Camera #", 					"CAM_ID", 				0, 0, 900, 1);
+	GUI.addSetting("Camera Width",				"CAM_WIDTH", 			320, 0, 1920, 2);
+	GUI.addSetting("Camera Height", 			"CAM_HEIGHT", 			240, 0, 1080, 2);
 							
 	setCommonText("status: loaded settings from xml");
 		

@@ -170,14 +170,11 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 	//either grab pixels from video or grab from camera
 	if(bVideoSetup){
 		VP.update();
-//        if(VP.isFrameNew()){
-            pixCam 	= VP.getPixels().getData();
-//        }
+        pixCam 	= VP.getPixels().getData();
 	}else{
 		VG.update();
-//        if(VG.isFrameNew()){
-            pixCam 	= VG.getPixels().getData();
-//        }
+        pixCam 	= VG.getPixels().getData();
+
 	}
 	
 	
