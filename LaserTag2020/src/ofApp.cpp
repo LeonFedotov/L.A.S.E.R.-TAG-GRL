@@ -22,8 +22,8 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-	ofSetupScreen();
 	appCtrl.draw();
+	ofDrawBitmapString(ofGetFrameRate(), 10, 10);
 }
 
 

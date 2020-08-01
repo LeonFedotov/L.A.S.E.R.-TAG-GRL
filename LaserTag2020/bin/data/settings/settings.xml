@@ -1,49 +1,46 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<SLIDE>0</SLIDE>
-<USE_CAMERA>1</USE_CAMERA>
-<CAM_ID>1</CAM_ID>
-<CAM_WIDTH>320</CAM_WIDTH>
-<CAM_HEIGHT>240</CAM_HEIGHT>
-<USE_BLOBS>1</USE_BLOBS>
-<MIN_BLOB_SIZE>2</MIN_BLOB_SIZE>
-<MOTION_DIFF>0</MOTION_DIFF>
-<ACTIVITY>13</ACTIVITY>
-<JUMP_DIST>0.610000014</JUMP_DIST>
-<HUE_POINT>0.280000001</HUE_POINT>
-<HUE_WIDTH>0.170000002</HUE_WIDTH>
-<SAT_POINT>0.219999999</SAT_POINT>
-<VAL_POINT>0.160000995</VAL_POINT>
-<SLANT>0</SLANT>
-<BRUSH_WIDTH>30</BRUSH_WIDTH>
-<DRIPS>0</DRIPS>
-<DRIPS_FREQ>6</DRIPS_FREQ>
-<LINE_RES>60</LINE_RES>
-<FADE>0</FADE>
-<FADE_AMNT>0.9870000</FADE_AMNT>
-<CLEAR_ZONE>1</CLEAR_ZONE>
-<CLEAR_X>296</CLEAR_X>
-<CLEAR_Y>8</CLEAR_Y>
-<CLEAR_THRESH>3</CLEAR_THRESH>
-<NETWORK_SEND>0</NETWORK_SEND>
-<UDP_OR_TCP>0</UDP_OR_TCP>
-<IP_PT1>10</IP_PT1>
-<IP_PT2>10</IP_PT2>
-<IP_PT3>10</IP_PT3>
-<IP_PT4>246</IP_PT4>
-<PORT>10420</PORT>
-<SEND_DATA>1</SEND_DATA>
-<BRUSH_NO>2</BRUSH_NO>
-<MUSIC>0</MUSIC>
-<TRACK>0</TRACK>
-<VOL>61</VOL>
-<SCRATCH>0</SCRATCH>
-<BUBBLE>1</BUBBLE>
-<BRUSH_MODE>0</BRUSH_MODE>
-<CLEAR_W>18</CLEAR_W>
-<CLEAR_H>49</CLEAR_H>
-<DRIPS_SPEED>1.079998970</DRIPS_SPEED>
-<DRIP_DIRECTION>0</DRIP_DIRECTION>
-<BRUSH_COLOR>0</BRUSH_COLOR>
-<SCRATCH_AMNT>1.4000003</SCRATCH_AMNT>
-<ADVANCED_QUAD>1</ADVANCED_QUAD>
-<PROJ_BRIGHTNESS>100</PROJ_BRIGHTNESS>
+<?xml version="1.0"?>
+<Settings>
+	<Brush_Settings>
+		<Brush_mode>0</Brush_mode>
+		<Brush_width>4</Brush_width>
+		<Brush_image_style>0</Brush_image_style>
+		<Brush_color>0</Brush_color>
+		<Line_resolution>40</Line_resolution>
+		<Proj_Brightness>100</Proj_Brightness>
+	</Brush_Settings>
+	<Drip_settings>
+		<Drips_enabled>1</Drips_enabled>
+		<Drips_freq>11</Drips_freq>
+		<Drips_speed>0.3</Drips_speed>
+		<Drips_direction>0</Drips_direction>
+	</Drip_settings>
+	<Tracking_settings>
+		<Hue_Point>0.28</Hue_Point>
+		<Hue_Thresh_Width>0.17</Hue_Thresh_Width>
+		<Sat_Threshold>0.22</Sat_Threshold>
+		<Value_Threshold>0.160001</Value_Threshold>
+		<Min_blob_size>8</Min_blob_size>
+		<Advanced_quad>1</Advanced_quad>
+		<Activity_thresh>10</Activity_thresh>
+		<Jump_dist>0.928571</Jump_dist>
+	</Tracking_settings>
+	<Clear_zone_settings>
+		<Use_clear_zone>1</Use_clear_zone>
+		<Clear_sensitivty>1</Clear_sensitivty>
+		<Clear_x_pos>284</Clear_x_pos>
+		<Clear_y_pos>198</Clear_y_pos>
+		<Clear_width>29</Clear_width>
+		<Clear_height>33</Clear_height>
+	</Clear_zone_settings>
+	<Music_player_settings>
+		<Play_music>0</Play_music>
+		<Which_track>0</Which_track>
+		<Volume>80</Volume>
+	</Music_player_settings>
+	<Camera_settings>
+		<Use_camera>0</Use_camera>
+		<Camera__>0</Camera__>
+		<Camera_Width>640</Camera_Width>
+		<Camera_Height>480</Camera_Height>
+	</Camera_settings>
+</Settings>

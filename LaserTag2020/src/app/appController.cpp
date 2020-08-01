@@ -1,257 +1,262 @@
 #include "appController.h"
 
 //---------------------------------------------------
-appController::appController(){
-	
+appController::appController() {
+
 }
 
 //all our initalizers
 //----------------------------------------------------
-void appController::setup(){
-	
+void appController::setup() {
+
 	//some vars
-	full				= false;
-	singleScreenMode 	= false;
-	toggleGui 			= false;
-	callibration		= false;
-	keyTimer  			= 0;
-	bInverted			= false;
-	brushMode			= 0;
-	
+	full = false;
+	singleScreenMode = false;
+	toggleGui = false;
+	callibration = false;
+	keyTimer = 0;
+	bInverted = false;
+	brushMode = 0;
+
 	//this is for win32 custom fullscreen
 	//see winUtils.h - do not rename windowTitle
 	windowTitle = "laser tag server";
 	ofSetWindowTitle(windowTitle);
-	
+
 	////// BRUSHES and PROJECTION ///
 	IP.setup(PROJECTION_W, PROJECTION_H);
 	setupBrushes(PROJECTION_W, PROJECTION_H);
+	loadSettings();
 	CM.loadColorSettings(ofToDataPath("settings/colors.xml"));
 
 	////// XML SETTINGS ////
-	loadSettings();
 	IP.loadSettings(ofToDataPath("settings/quadProj.xml"));
-		
-		
+
+
 	/////// GUI STUFF ////
 	settingsImg.load("sys/settings.png");
 	noticeImg.load("sys/criticalDontEditOrDelete.png");
-//	useTrueTypeFont("fonts/courbd.ttf", 10);
+	//	useTrueTypeFont("fonts/courbd.ttf", 10);
 	LT.useTrueTypeFont("fonts/courbd.ttf", 10);
-	GUI.useTrueTypeFont("fonts/courbd.ttf", 10);
-	
+	GUI.setUseTTF("fonts/courbd.ttf");
+
 	//////// NETWORK SETUP ///
 	setupNetwork();
-	
+
 	//////// MUSIC PLAYER ////			
 	TP.loadTracks(ofToDataPath("tunes/"));
-				
+
 	//////// VIDEO TRACKING /
-	camWidth 	= GUI.getI("CAM_WIDTH");
-	camHeight 	= GUI.getI("CAM_HEIGHT");
-	
+	camWidth = CAM_WIDTH;
+	camHeight = CAM_HEIGHT;
+
 	//if we have a camera lets see if the requested dimensions
 	//is what we asked for and if not lets update our settings
 	//with the real dimensions
-	if( GUI.getI("USE_CAMERA") ){
-		LT.setupCamera(GUI.getI("CAM_ID"), camWidth, camHeight);
-		if(LT.W != 0 && LT.H != 0){
-			 camWidth 	= LT.W;
-			 camHeight 	= LT.H;
-			 GUI.set("CAM_WIDTH", camWidth);
-			 GUI.set("CAM_HEIGHT", camHeight);					 
+	if (USE_CAMERA) {
+		LT.setupCamera(CAM_ID, camWidth, camHeight);
+		if (LT.W != 0 && LT.H != 0) {
+			camWidth = LT.W;
+			camHeight = LT.H;
+			CAM_WIDTH = camWidth;
+			CAM_HEIGHT = camHeight;
 		}
 	}
 	else LT.setupVideo("videos/lasertag_test.mov");
-	
+
 	LT.setupCV(ofToDataPath("settings/quad.xml"));
-	
+
 	//lets update our brushes on launch
 	updateBrushSettings(true);
 
 	//see if there is a video from GRL to display.
-	webMovieLoaded = VP.load("http://graffitiresearchlab.com/lasertag2000/helloFromGRL.php?"+ofToString(ofRandom(10000, 50000)));
-	if(webMovieLoaded)VP.play();
+	webMovieLoaded = VP.load("http://graffitiresearchlab.com/lasertag2000/helloFromGRL.php?" + ofToString(ofRandom(10000, 50000)));
+	if (webMovieLoaded)VP.play();
+
+	//reloadSettings();
 }
 
 //-----------------------------------------------------------
-void appController::setupBrushes(int w, int h){
-	
+void appController::setupBrushes(int w, int h) {
+
 	brushes[0] = new pngBrush();
 	brushes[1] = new graffLetter();
 	brushes[2] = new vectorBrush();
 	brushes[3] = new gestureBrush();
-	
-	for(int i = 0; i < NUM_BRUSHES; i++){
-		brushes[i]->setup(w,h);
+
+	for (int i = 0; i < NUM_BRUSHES; i++) {
+		brushes[i]->setup(w, h);
 	}
 
 }
 
+void appController::onBrushModeChange(int& i) {
+	updateBrushSettings(false);
+}
+
+void appController::onEnableNetwork(bool& b) {
+	setupNetwork();
+}
 //lets read some xml!
 //----------------------------------------------------
-void appController::loadSettings(){
+void appController::loadSettings() {
 
-	//we read our settings in 
-	//setCommonText("status: loading settings from xml");
-	GUI.readFromFile(ofToDataPath("settings/settings.xml"));
 
-	//the order of these settings is the order they are displayed.
-	//titles break up the settings into sub menu's
-	
-	
-	GUI.addTitle("Drawing settings");
 
-	GUI.addSetting("Brush mode",		"BRUSH_MODE", 		0, 0, NUM_BRUSHES-1, 1);
-	GUI.addSetting("Brush width",		"BRUSH_WIDTH",  	4, 2, 128, 1);
-	GUI.addSetting("Brush image/style", "BRUSH_NO",			0, 0, 200, 1);
-	GUI.addSetting("Brush color",		"BRUSH_COLOR", 	    0, 0, 8, 1);
-	GUI.addSetting("Line resolution",	"LINE_RES", 		40, 1, 200, 1);
-	GUI.addSetting("Proj Brightness",	"PROJ_BRIGHTNESS", 	100, 0, 100, 4);
-	
-	GUI.addTitle("Drip settings");
-	GUI.addSetting("Drips enabled",		"DRIPS", 			0, 0, 1, 1);
-	GUI.addSetting("Drips freq", 		"DRIPS_FREQ", 		11, 1, 120, 1);
-	GUI.addSetting("Drips speed", 		"DRIPS_SPEED", 		0.3f, 0.0f, 12.0f, 0.02f);
-	GUI.addSetting("Drips direction",	"DRIP_DIRECTION", 	0, 0,3, 1);
-	
-							
-	GUI.addTitle("Tracking settings");
-	GUI.addSetting("Hue Point", 		"HUE_POINT", 		0.35f, 0.0f, 1.0f, 0.02f);
-	GUI.addSetting("Hue Thresh Width", 	"HUE_WIDTH", 		0.25f, 0.0f, 1.0f, 0.02f);
-	GUI.addSetting("Sat Threshold", 	"SAT_POINT", 		0.2f,  0.0f, 1.0f, 0.02f);
-	GUI.addSetting("Value Threshold", 	"VAL_POINT", 		0.15f, 0.0f, 1.0f, 0.02f);
-	GUI.addSetting("Min blob size",		"MIN_BLOB_SIZE",	8, 1, 100, 1);
-	GUI.addSetting("Advanced quad",		"ADVANCED_QUAD",	0, 0, 1, 1);
-	GUI.addSetting("Activity thresh", 	"ACTIVITY", 		10, 0, 100, 1);
-	GUI.addSetting("Jump dist",			"JUMP_DIST",    	0.0f, 0.0f, 1.0f, 0.01f);
-	
-	GUI.addTitle("Clear zone settings");
-	GUI.addSetting("Use clear zone",	"CLEAR_ZONE", 		0, 0, 1, 1);
-	GUI.addSetting("Clear sensitivty",	"CLEAR_THRESH", 	1, 1, 9000, 1);			
-	GUI.addSetting("Clear x pos"	,	"CLEAR_X", 			0, 0, 320, 2);
-	GUI.addSetting("Clear y pos"	,	"CLEAR_Y", 			1, 0, 240, 2);
-	GUI.addSetting("Clear width"	,	"CLEAR_W", 			1, 0, 320, 2);
-	GUI.addSetting("Clear height"	,	"CLEAR_H", 			1, 0, 240, 2);
+	GUI.setup("Settings");
 
-	GUI.addTitle("Network settings");
-	GUI.addSetting("Enable Network",	"NETWORK_SEND",		0, 0, 1, 1);
-	GUI.addSetting("Send data",			"SEND_DATA",		0, 0, 1, 1);
-	GUI.addSetting("UDP(0) / TCP(1)",	"UDP_OR_TCP",		0, 0, 1, 1);
-	GUI.addSetting("ip: val.xxx.xxx.xxx",	"IP_PT1",		127, 0, 255, 1);
-	GUI.addSetting("ip: xxx.val.xxx.xxx",	"IP_PT2",		0, 0, 255, 1);
-	GUI.addSetting("ip: xxx.xxx.val.xxx",	"IP_PT3",		0, 0, 255, 1);
-	GUI.addSetting("ip: xxx.xxx.xxx.val",	"IP_PT4",		1, 0, 255, 1);
-	GUI.addSetting("port:",					"PORT",			5544, 0, 65000, 1);
-	
-	GUI.addTitle("Music player settings");
-	GUI.addSetting("Play music",	"MUSIC", 	0, 0, 1, 1);	
-	GUI.addSetting("Which track",	"TRACK", 	0, 0, 999, 1);	
-	GUI.addSetting("Volume",		"VOL", 		80, 0, 100, 1);	
-	
-	GUI.addTitle("Camera settings (restart app!)");
-	GUI.addSetting("Use camera", 				"USE_CAMERA", 			0, 0, 1, 1);	
-	GUI.addSetting("Camera #", 					"CAM_ID", 				0, 0, 900, 1);
-	GUI.addSetting("Camera Width",				"CAM_WIDTH", 			320, 0, 1920, 2);
-	GUI.addSetting("Camera Height", 			"CAM_HEIGHT", 			240, 0, 1080, 2);
-							
-	setCommonText("status: loaded settings from xml");
-		
+	BRUSH_SETTINGS.setName("Brush Settings");
+	BRUSH_SETTINGS.add(BRUSH_MODE.set("Brush mode", 0, 0, NUM_BRUSHES - 1));
+	BRUSH_MODE.addListener(this, &appController::onBrushModeChange);
+	BRUSH_SETTINGS.add(BRUSH_WIDTH.set("Brush width", 4, 2, 128));
+	BRUSH_WIDTH.addListener(this, &appController::onBrushModeChange);
+	BRUSH_SETTINGS.add(BRUSH_NO.set("Brush image/style", 0, 0, 200));
+	BRUSH_NO.addListener(this, &appController::onBrushModeChange);
+	BRUSH_SETTINGS.add(BRUSH_COLOR.set("Brush color", 0, 0, 8));
+	BRUSH_COLOR.addListener(this, &appController::onBrushModeChange);
+	BRUSH_SETTINGS.add(LINE_RES.set("Line resolution", 40, 1, 200));
+	LINE_RES.addListener(this, &appController::onBrushModeChange);
+	BRUSH_SETTINGS.add(PROJ_BRIGHTNESS.set("Proj Brightness", 100, 0, 100));
+	GUI.add(BRUSH_SETTINGS);
+
+	DRIPS_SETTINGS.setName("Drip settings");
+	DRIPS_SETTINGS.add(DRIPS.set("Drips enabled", true));
+	DRIPS_SETTINGS.add(DRIPS_FREQ.set("Drips freq", 11, 1, 120));
+	DRIPS_SETTINGS.add(DRIPS_SPEED.set("Drips speed", 0.3, 0.0, 12.0));
+	DRIPS_SETTINGS.add(DRIP_DIRECTION.set("Drips direction", 0, 0, 3));
+	GUI.add(DRIPS_SETTINGS);
+
+	TRACKING_SETTINGS.setName("Tracking settings");
+	TRACKING_SETTINGS.add(HUE_POINT.set("Hue Point", 0.280000001, 0.0f, 1.0f));
+	TRACKING_SETTINGS.add(HUE_WIDTH.set("Hue Thresh Width", 0.170000002, 0.0f, 1.0f));
+	TRACKING_SETTINGS.add(SAT_POINT.set("Sat Threshold", 0.219999999, 0.0f, 1.0f));
+	TRACKING_SETTINGS.add(VAL_POINT.set("Value Threshold", 0.160000995, 0.0f, 1.0f));
+	TRACKING_SETTINGS.add(MIN_BLOB_SIZE.set("Min blob size", 8, 1, 100));
+	TRACKING_SETTINGS.add(ADVANCED_QUAD.set("Advanced quad", false));
+	TRACKING_SETTINGS.add(ACTIVITY.set("Activity thresh", 10, 0, 100));
+	TRACKING_SETTINGS.add(JUMP_DIST.set("Jump dist", 0.610000014, 0.0f, 1.0f));
+	GUI.add(TRACKING_SETTINGS);
+
+	CLEAR_ZONE_SETTINGS.setName("Clear zone settings");
+	CLEAR_ZONE_SETTINGS.add(CLEAR_ZONE.set("Use clear zone", 0, 0, 1));
+	CLEAR_ZONE_SETTINGS.add(CLEAR_THRESH.set("Clear sensitivty", 1, 1, 9000));
+	CLEAR_ZONE_SETTINGS.add(CLEAR_X.set("Clear x pos", 0, 0, 1920));
+	CLEAR_ZONE_SETTINGS.add(CLEAR_Y.set("Clear y pos", 1, 0, 1080));
+	CLEAR_ZONE_SETTINGS.add(CLEAR_W.set("Clear width", 1, 0, 1920));
+	CLEAR_ZONE_SETTINGS.add(CLEAR_H.set("Clear height", 1, 0, 1080));
+	GUI.add(CLEAR_ZONE_SETTINGS);
+
+	NETWORK_SETTINGS.setName("Network settinSgs");
+	NETWORK_SETTINGS.add(NETWORK_SEND.set("Enable Network", false));
+	NETWORK_SEND.addListener(this, &appController::onEnableNetwork);
+	NETWORK_SETTINGS.add(SEND_DATA.set("Send data", false));
+	NETWORK_SETTINGS.add(UDP_OR_TCP.set("UDP(0) / TCP(*)", true));
+	NETWORK_SETTINGS.add(IP_PT1.set("ip: val.xxx.xxx.xxx", 127, 0, 255));
+	NETWORK_SETTINGS.add(IP_PT2.set("ip: xxx.val.xxx.xxx", 0, 0, 255));
+	NETWORK_SETTINGS.add(IP_PT3.set("ip: xxx.xxx.val.xxx", 0, 0, 255));
+	NETWORK_SETTINGS.add(IP_PT4.set("ip: xxx.xxx.xxx.val", 1, 0, 255));
+	NETWORK_SETTINGS.add(PORT.set("port:", 5544, 0, 65000));
+
+	MUSIC_SETTINGS.setName("Music player settings");
+	MUSIC_SETTINGS.add(MUSIC.set("Play music", true));
+	MUSIC.addListener(this, &appController::onMusicChange);
+	MUSIC_SETTINGS.add(TRACK.set("Which track", 0, 0, 999));
+	TRACK.addListener(this, &appController::onTrackChange);
+	MUSIC_SETTINGS.add(VOL.set("Volume", 80, 0, 100));
+	GUI.add(MUSIC_SETTINGS);
+
+	CAMERA_SETTINGS.setName("Camera settings");
+	CAMERA_SETTINGS.add(USE_CAMERA.set("Use camera", false));
+	CAMERA_SETTINGS.add(CAM_ID.set("Camera #", 0, 0, 900));
+	CAMERA_SETTINGS.add(CAM_WIDTH.set("Camera Width", 320, 0, 1920));
+	CAMERA_SETTINGS.add(CAM_HEIGHT.set("Camera Height", 240, 0, 1080));
+	GUI.add(CAMERA_SETTINGS);
+
+	GUI.loadFromFile(ofToDataPath("settings/settings.xml"));
 }
-	
-	
+
+
 //----------------------------------------------------
-void appController::clearProjectedImage(){
-	for(int i = 0; i < NUM_BRUSHES; i++){
+void appController::clearProjectedImage() {
+	for (int i = 0; i < NUM_BRUSHES; i++) {
 		brushes[i]->clear();
 	}
 }
 
 //----------------------------------------------------
-void appController::mainLoop(){
-	
+void appController::mainLoop() {
+
 	//we use this everywhere so lets make it a member
 	//variable
-	brushMode 	= GUI.getI("BRUSH_MODE");
+	brushMode = BRUSH_MODE;
 
 	//lets find dat laser!
-	trackLaser();	
-		
+	trackLaser();
+
 	//if sending data is enabled
 	//then lets send our data!	
-	if( GUI.getI("SEND_DATA") && LT.newData() ){
+	if (SEND_DATA && LT.newData()) {
 		handleNetworkSending();
-	} 
-	
-	//for our built in music player
-	manageMusic();
-	
+	}
+
 	//this deals with telling our brushes
 	//all about the settings that are being
 	//changed
-	updateBrushSettings(false);
-	
+	manageMusic();
+
 	//this is where we paint
 	managePainting();
-	
+
 	//if you have a crazy bright projector
 	//and a weak laser - you might need to dim the 
 	//projector - this method is for raster brushes
 	//for gl brushes we do it in updateBrushSettings
-	IP.setProjectionBrightness(GUI.getI("PROJ_BRIGHTNESS"));
-	
+	IP.setProjectionBrightness(PROJ_BRIGHTNESS);
+
 	//this is for the singlescreen mode
 	//it will show the current setting for a few seconds
-	if(ofGetElapsedTimeMillis() - keyTimer > STATUS_SHOW_TIME )keyTimer = 0;
+	if (ofGetElapsedTimeMillis() - keyTimer > STATUS_SHOW_TIME)keyTimer = 0;
 
-	if(webMovieLoaded)VP.update();
+	if (webMovieLoaded)VP.update();
 }
 
 
 //----------------------------------------------------
-void appController::setupNetwork(){
+void appController::setupNetwork() {
 
-	if( GUI.getI("NETWORK_SEND") ){
-		string ipStr 	= ofToString(GUI.getI("IP_PT1")) + ".";
-		ipStr +=  ofToString(GUI.getI("IP_PT2")) + ".";
-		ipStr +=  ofToString(GUI.getI("IP_PT3")) + ".";
-		ipStr +=  ofToString(GUI.getI("IP_PT4"));
-						
-		int port 		= GUI.getI("PORT"); 
-	
-		if( GUI.getI("UDP_OR_TCP") ){
-			string msg = "status: tcp server listening on port: "+ofToString(port);
-			if( LS.setupTCPServer(port) ) 	setCommonText(msg);
-		}else{
-			string msg = "status: udp sending to: "+ipStr;
-			msg +="  port: "+ofToString(port);
-			if( LS.setupUDP(ipStr, port) ) setCommonText(msg);
+	if (NETWORK_SEND) {
+		string ipStr = ofToString(IP_PT1) + ".";
+		ipStr += ofToString(IP_PT2) + ".";
+		ipStr += ofToString(IP_PT3) + ".";
+		ipStr += ofToString(IP_PT4);
+
+		int port = PORT;
+
+		if (UDP_OR_TCP) {
+			string msg = "status: tcp server listening on port: " + ofToString(port);
+			if (LS.setupTCPServer(port)) 	setCommonText(msg);
 		}
-	}else{
+		else {
+			string msg = "status: udp sending to: " + ipStr;
+			msg += "  port: " + ofToString(port);
+			if (LS.setupUDP(ipStr, port)) setCommonText(msg);
+		}
+	}
+	else {
 		LS.close();
-	 	setCommonText("status: all network i/o closed");
+		setCommonText("status: all network i/o closed");
 	}
 }
 
 //----------------------------------------------------
-void appController::handleNetworkSending(){
-
-	//look to see if network send has changed
-	//if so we might need to open or close
-	//a network connection 
-	//also look to see if mode between udp and tcp
-	//has changed as this will require resetup
-	if( GUI.hasChanged("NETWORK_SEND") || ( GUI.hasChanged("UDP_OR_TCP") && GUI.getI("NETWORK_SEND") )  ){
-		setupNetwork();
-	}
-	
+void appController::handleNetworkSending() {
 	//if our network is setup
 	//then lets send data
-	if( LS.isSetup() ){
+	if (LS.isSetup()) {
 		LS.sendData(LT.getLaserPointString());
-		if(LS.isTCPSetup()){
-			if( LS.checkNewTCPClient() ){
-				string msg = "status: tcp client connected on: "+LS.getLatestTCPClientIP();
+		if (LS.isTCPSetup()) {
+			if (LS.checkNewTCPClient()) {
+				string msg = "status: tcp client connected on: " + LS.getLatestTCPClientIP();
 				setCommonText(msg);
 			}
 		}
@@ -259,365 +264,297 @@ void appController::handleNetworkSending(){
 }
 
 //----------------------------------------------------
-void appController::trackLaser(){
-		
+void appController::trackLaser() {
+
 	//lets see if we need to update the clearZone
-	if( GUI.hasChanged("CLEAR_ZONE") || GUI.hasChanged("CLEAR_X") || GUI.hasChanged("CLEAR_Y")
-		|| GUI.hasChanged("CLEAR_W") || GUI.hasChanged("CLEAR_H") || GUI.hasChanged("CLEAR_THRESH") ){
-		
-		LT.setUseClearZone(GUI.getI("CLEAR_ZONE"));
-		
-		LT.setClearZone(GUI.getI("CLEAR_X"), GUI.getI("CLEAR_Y"), 
-						GUI.getI("CLEAR_W"), GUI.getI("CLEAR_H"));
-						
-		LT.setClearThreshold(GUI.getI("CLEAR_THRESH"));
-	}
-		
-	//these two settings are used to determin
-	//when a new stroke is created
-	int activity 	= GUI.getI("ACTIVITY");
-	float jump	 	= GUI.getF("JUMP_DIST");
-	
-	//the minSize of our blobs
-	int blobSize 	= GUI.getI("MIN_BLOB_SIZE");
-			
-	//our color tracking settings
-	float hue 		= GUI.getF("HUE_POINT");
-	float hueThresh = GUI.getF("HUE_WIDTH"); 
-	float sat		= GUI.getF("SAT_POINT"); 
-	float value		= GUI.getF("VAL_POINT");
-	
+
+	LT.setUseClearZone(CLEAR_ZONE);
+	LT.setClearZone(CLEAR_X, CLEAR_Y, CLEAR_W, CLEAR_H);
+	LT.setClearThreshold(CLEAR_THRESH);
+
 	//lets process the video data to track that laser
-	LT.processFrame(hue, hueThresh, sat,  value, blobSize, activity, jump, GUI.getI("ADVANCED_QUAD")); 
-	
+	LT.processFrame(HUE_POINT, HUE_WIDTH, SAT_POINT, VAL_POINT, MIN_BLOB_SIZE, ACTIVITY, JUMP_DIST, ADVANCED_QUAD);
+
 	//clear the images if the clear zone is hit
-	if( LT.isClearZoneHit() ){
+	if (LT.isClearZoneHit()) {
 		clearProjectedImage();
 		setCommonText("status: clear zone hit - clearning image\n");
 	}
-	
-	//only update our color tracking indicator if values have changed				
-	if( GUI.hasChanged("HUE_POINT") || GUI.hasChanged("HUE_WIDTH") 
-	    || GUI.hasChanged("SAT_POINT") || GUI.hasChanged("VAL_POINT") ){
-	
-		LT.calcColorRange(hue, hueThresh, sat, value);	
-	}
-	
+
+
+	LT.calcColorRange(HUE_POINT, HUE_WIDTH, SAT_POINT, VAL_POINT);
+
+
 }
 
+
+void appController::onMusicChange(bool& b) {
+	if (MUSIC) {
+		TP.unPause();
+		TP.setVolume(VOL);
+	}
+	else {
+		TP.pause();
+	}
+}
+
+void appController::onTrackChange(int& i) {
+
+}
 //----------------------------------------------------
-void appController::manageMusic(){
-	
+void appController::manageMusic() {
+
 	///////////////////////////////////////////////////////////
 	// our music player :)
 	///////////////////////////////////////////////////////////
-	
-	//update our mp3 player
-	bool playMusic = GUI.getI("MUSIC");
-	int whichTrack = GUI.getI("TRACK");
-	int volume	   = GUI.getI("VOL");
 
-	if(playMusic){
-		TP.unPause();
-		if( whichTrack != TP.getCurrentTrackNo()){
-			
-			if(whichTrack >= TP.getNumTracks()){
-				whichTrack = 0;
-				GUI.set("TRACK", whichTrack);
-			}
-			
-			TP.playTrack(whichTrack);
-			setCommonText("Playing: "+ofToString(TP.getCurrentTrackNo())+" "+TP.getCurrentTrackName());
+	int whichTrack = TRACK;
+
+	if (TRACK != TP.getCurrentTrackNo()) {
+
+		if (TRACK >= TP.getNumTracks()) {
+			TRACK = 0;
 		}
-		
-		if( TP.getFinished() ){
-			whichTrack = TP.nextTrack();
-			setCommonText("Playing: "+ofToString(TP.getCurrentTrackNo())+" "+TP.getCurrentTrackName());
-			GUI.set("TRACK", whichTrack);
-		}
-		TP.setVolume(volume);
-	}else{
-		TP.pause();	
+		TP.playTrack(whichTrack);
+		setCommonText("Playing: " + ofToString(TP.getCurrentTrackNo()) + " " + TP.getCurrentTrackName());
 	}
+
+	if (TP.getFinished()) {
+		whichTrack = TP.nextTrack();
+		setCommonText("Playing: " + ofToString(TP.getCurrentTrackNo()) + " " + TP.getCurrentTrackName());
+		TRACK = whichTrack;
+	}
+	TP.setVolume(VOL);
+
 }
 
 //----------------------------------------------------
-void appController::updateBrushSettings(bool first){
-					
-	//if our drips settings need to be updated
-	if(	GUI.hasChanged("DRIPS") || GUI.hasChanged("DRIPS_FREQ") ||
-	 	GUI.hasChanged("DRIPS_SPEED") ||  GUI.hasChanged("DRIP_DIRECTION") || first){
-				 	
-		int drips 		= GUI.getI("DRIPS");
-		int freq 		= GUI.getI("DRIPS_FREQ");
-		float speed		= GUI.getF("DRIPS_SPEED");		 	
-		int direction	= GUI.getI("DRIP_DIRECTION");
-				 	
-		for(int i = 0; i < NUM_BRUSHES; i++){
-			brushes[i]->dripsSettings(drips, freq, speed, direction);
-		}
-	}					
+void appController::updateBrushSettings(bool first) {
 
-	//brush size
-	if(	GUI.hasChanged("BRUSH_WIDTH") ){
-		for(int i = 0; i < NUM_BRUSHES; i++){
-			brushes[i]->setBrushWidth( GUI.getI("BRUSH_WIDTH") );
-		}
-	}	
-	
-	//update the brush number (this is used for selecting different pngs)
-	//but other brushe classes might need it too
-	if(	GUI.hasChanged("BRUSH_NO") ){
-		for(int i = 0; i < NUM_BRUSHES; i++){
-			if(i == brushMode) brushes[i]->setBrushNumber( GUI.getI("BRUSH_NO") );
-		}
-	}	
-	
-	//our brush color 
-	if( GUI.hasChanged("BRUSH_COLOR") || first){
-		CM.setCurrentColor( GUI.getI("BRUSH_COLOR") );
-		
-		unsigned char * rgb = CM.getColor3I();
-		
-		for(int i = 0; i < NUM_BRUSHES; i++){
-			brushes[i]->setBrushColor(rgb[0], rgb[1], rgb[2]);
-		}
-		
-		IP.setProjectionColor(rgb[0], rgb[1], rgb[2]);
-	} 				
-		
-	//non performance intensive stuff - we don't check if it is changed
-	for(int i = 0; i < NUM_BRUSHES; i++){
-		brushes[i]->setNumSteps( GUI.getI("LINE_RES") );
-		brushes[i]->setBrushBrightness(GUI.getI("PROJ_BRIGHTNESS"));
+	CM.setCurrentColor(BRUSH_COLOR);
+	unsigned char* rgb = CM.getColor3I();
+
+	for (int i = 0; i < NUM_BRUSHES; i++) {
+		brushes[i]->dripsSettings(DRIPS, DRIPS_FREQ, DRIPS_SPEED, DRIP_DIRECTION);
+		brushes[i]->setBrushWidth(BRUSH_WIDTH);
+		if (i == brushMode) brushes[i]->setBrushNumber(BRUSH_NO);
+		brushes[i]->setBrushColor(rgb[0], rgb[1], rgb[2]);
+		brushes[i]->setNumSteps(LINE_RES);
+		brushes[i]->setBrushBrightness(PROJ_BRIGHTNESS);
 	}
-	
+
+	IP.setProjectionColor(rgb[0], rgb[1], rgb[2]);
 }
 
 //----------------------------------------------------
-void appController::managePainting(){
-			
+void appController::managePainting() {
+
 	//time to paint!
 	//but only if we have got data
-	if( LT.newData() ){
-	
+	if (LT.newData()) {
+
 		float laserX = LT.laserX;
 		float laserY = LT.laserY;
-		
+
 		//if our brush is a vector brush we need
 		//to warp the coords as we are not 
 		//texture warping
-		if( brushes[brushMode]->getIsVector() ){
+		if (brushes[brushMode]->getIsVector()) {
 			LT.getWarpedCoordinates(IP.getQuadPoints(), &laserX, &laserY);
 		}
 		brushes[brushMode]->addPoint(laserX, laserY, LT.isStrokeNew());
-		
+
 		LT.clearNewStroke();
 	}
-	
+
 	//idle our current brush
-	for(int i = 0; i < NUM_BRUSHES; i++){
-		if(i == brushMode){
+	for (int i = 0; i < NUM_BRUSHES; i++) {
+		if (i == brushMode) {
 			brushes[i]->update();
-			
+
 			//we need to update our brush style
 			//as some brushes have different number
 			//of brush styles
-			
-			GUI.set("BRUSH_NO", brushes[i]->getBrushNumber());
+
+			BRUSH_NO = brushes[i]->getBrushNumber();
 		}
 	}
 
 	//lets tell people which mode they are in
-	if( GUI.hasChanged("BRUSH_MODE") ){
-		setCommonText("brush: "+brushes[brushMode]->getName()+" - "+brushes[brushMode]->getDescription());
-	} 
-	
+
+	setCommonText("brush: " + brushes[brushMode]->getName() + " - " + brushes[brushMode]->getDescription());
+
 	//if we are a bitmap brush
-	if( brushes[brushMode]->getIsVector() == false){
+	if (brushes[brushMode]->getIsVector() == false) {
 		//lets update our texture!!
-		if( brushes[brushMode]->getIsColor() ){
-			IP.updateColorTexture(brushes[brushMode]->getImageAsPixels());																
-		}else{
-			IP.updateGreyscaleTexture(brushes[brushMode]->getImageAsPixels());																
+		if (brushes[brushMode]->getIsColor()) {
+			IP.updateColorTexture(brushes[brushMode]->getImageAsPixels());
+		}
+		else {
+			IP.updateGreyscaleTexture(brushes[brushMode]->getImageAsPixels());
 		}
 	}
 }
 
 //----------------------------------------------------
-void appController::saveSettings(){
+void appController::saveSettings() {
 
 	setCommonText("status: saving settings to xml");
 
 	GUI.saveToFile(ofToDataPath("settings/settings.xml"));
 	LT.QUAD.saveToFile(ofToDataPath("settings/quad.xml"));
 	IP.QUAD.saveToFile(ofToDataPath("settings/quadProj.xml"));
-	
+
 	setCommonText("status: settings saved to xml");
 }
 
 //----------------------------------------------------
-void appController::reloadSettings(){
-	
+void appController::reloadSettings() {
+
 	setCommonText("status: reloading settings from xml");
 
-	GUI.reloadSettings();
+	GUI.loadFromFile(ofToDataPath("settings/settings.xml"));
 	LT.QUAD.loadSettings();
 	IP.loadSettings(ofToDataPath("settings/quadProj.xml"));
-	
+
 	setCommonText("status: settings reloaded from xml");
-	
+
 }
 
 //----------------------------------------------------
-void appController::selectPoint(float x, float y){
-	
-	if(singleScreenMode){
+void appController::selectPoint(float x, float y) {
+
+	if (singleScreenMode) {
 		IP.selectQuad(x, y, 0, 0, 1024, 768, 60);
 	}
-	else{		
+	else {
 		LT.QUAD.selectPoint(x, y, 0, 0, 320, 240, 60);
-			
+
 		//only try and select the mini quad 
 		//if the large quad is not selected
-		if( IP.selectQuad(x, y, 1024, 0, 1024, 768, 60) != 1){								
+		if (IP.selectQuad(x, y, 1024, 0, 1024, 768, 60) != 1) {
 			IP.selectMiniQuad(x, y, 30);
 		}
-	} 
+	}
 }
 
 //----------------------------------------------------
-void appController::dragPoint(float x, float y){
+void appController::dragPoint(float x, float y) {
 
-	if(singleScreenMode){
+	if (singleScreenMode) {
 		IP.updateQuad(x, y, 0, 0, 1024, 768);
 	}
-	else{
+	else {
 		LT.QUAD.updatePoint(x, y, 0, 0, 320, 240);
-		
+
 		//only try and update the mini quad 
 		//if the large quad is not selected
-		if( !IP.updateQuad(x, y, 1024, 0, 1024, 768) ){
+		if (!IP.updateQuad(x, y, 1024, 0, 1024, 768)) {
 			IP.updateMiniQuad(x, y);
 		}
-	} 	
-	
-}
-
-//----------------------------------------------------
-void appController::releasePoint(){
-	LT.QUAD.releaseAllPoints();
-	IP.releaseAllQuads(); 
-}
-	
-//----------------------------------------------------
-void appController::keyPress(int key){
-
-	if(key == 'f'){
-
-		#ifdef TARGET_WIN32
-			if(!full){
-				ofBeginCustomFullscreen(0,0,2048, 768);
-			}else{
-				ofEndCustomFullscreen();
-			}
-			full = !full;
-		#else
-			ofToggleFullscreen();
-		#endif
 	}
-	else if(key == '-'){
+
+}
+
+//----------------------------------------------------
+void appController::releasePoint() {
+	LT.QUAD.releaseAllPoints();
+	IP.releaseAllQuads();
+}
+
+//----------------------------------------------------
+void appController::keyPress(int key) {
+
+	if (key == 'f') {
+
+#ifdef TARGET_WIN32
+		if (!full) {
+			ofBeginCustomFullscreen(0, 0, 2048, 768);
+		}
+		else {
+			ofEndCustomFullscreen();
+		}
+		full = !full;
+#else
+		ofToggleFullscreen();
+#endif
+	}
+	else if (key == '-') {
 		singleScreenMode = false;
 	}
-	else if(key == '='){
-		singleScreenMode = true;	
+	else if (key == '=') {
+		singleScreenMode = true;
 	}
-	else if(key == 's'){
+	else if (key == 's') {
 		saveSettings();
 	}
-	else if(key == 'r'){
+	else if (key == 'r') {
 		reloadSettings();
 	}
-	else if(key == OF_KEY_UP){
-		GUI.selectPrev();
-		keyTimer = ofGetElapsedTimeMillis();
-	}
-	else if(key == OF_KEY_DOWN){
-		GUI.selectNext();
-		keyTimer = ofGetElapsedTimeMillis();
-	}
-	else if(key == OF_KEY_RIGHT){
-		GUI.increase();
-		keyTimer = ofGetElapsedTimeMillis();
-	}
-	else if(key == OF_KEY_LEFT){
-		GUI.decrease();
-		keyTimer = ofGetElapsedTimeMillis();
-	}else if(key == 'c'){
+	else if (key == 'c') {
 		LT.openCameraSettings();
-	}else if(key == 'd'){
+	}
+	else if (key == 'd') {
 		setCommonText("status: clearing projection");
 		clearProjectedImage();
-	}else if(key == ' '){
+	}
+	else if (key == ' ') {
 		toggleGui = !toggleGui;
 	}
-	
+
 }
 
 //----------------------------------------------------
-void appController::keyRelease(int key){
-	
-}	
+void appController::keyRelease(int key) {
+
+}
 
 //----------------------------------------------------
-void appController::draw(){
-		
-	if( singleScreenMode ){
-	
+void appController::draw() {
+
+	if (singleScreenMode) {
+
 		//make sure we have a black background
-		ofSetColor(0,0,0);
+		ofSetColor(0, 0, 0);
 		ofDrawRectangle(0, 0, 1024, 768);
-		
+
 		//if we are a vector brush
-		if( brushes[brushMode]->getIsVector() ){
+		if (brushes[brushMode]->getIsVector()) {
 			brushes[brushMode]->draw(0, 0, 1024, 768);
 			IP.drawProjectionMask(0, 0, 1024, 768);
-		}else IP.drawProjectionTex(0, 0, 1024, 768);
-
-		if(toggleGui)IP.drawProjectionToolHandles(0, 0, 1024, 768, false, true);
-		
-		ofSetHexColor(0x555555);
-		if(toggleGui)ofDrawBitmapString("fps: "+ofToString(ofGetFrameRate()), 10, 740);
-		if(keyTimer > 0){
-			ofDrawBitmapString("press '-' key to return to main view", 10, 704);
-			GUI.drawSelected(10, 720, 200);
 		}
+		else IP.drawProjectionTex(0, 0, 1024, 768);
 
-		if(webMovieLoaded){
+		if (toggleGui)IP.drawProjectionToolHandles(0, 0, 1024, 768, false, true);
+
+		ofSetHexColor(0x555555);
+		if (toggleGui)ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 740);
+
+		if (webMovieLoaded) {
 			ofSetHexColor(0xFFFFFF);
 			VP.draw(20, 20, 984, 728);
 		}
 	}
-	else{
+	else {
 		drawGUI();
-		
-		ofSetColor(150,150,150);
-		drawText("fps: "+ofToString(ofGetFrameRate()), 10, 740);
-		
+
+		ofSetColor(150, 150, 150);
+		drawText("fps: " + ofToString(ofGetFrameRate()), 10, 740);
+
 		//make sure we have a black background
-		ofSetColor(0,0,0);
+		ofSetColor(0, 0, 0);
 		ofDrawRectangle(1024, 0, 1024, 768);
-		
+
 		//if we are a vector brush
-		if( brushes[brushMode]->getIsVector() ){
+		if (brushes[brushMode]->getIsVector()) {
 			brushes[brushMode]->draw(1024, 0, 1024, 768);
 			IP.drawProjectionMask(1024, 0, 1024, 768);
 		}
 		else IP.drawProjectionTex(1024, 0, 1024, 768);
-						
-		if(toggleGui)IP.drawProjectionToolHandles(1024, 0, 1024, 768, false, true);
 
-		if(webMovieLoaded){		
+		if (toggleGui)IP.drawProjectionToolHandles(1024, 0, 1024, 768, false, true);
+
+		if (webMovieLoaded) {
 			ofSetHexColor(0xFFFFFF);
 			VP.draw(20, 20, 984, 728);
 			VP.draw(1044, 20, 984, 728);
@@ -628,39 +565,38 @@ void appController::draw(){
 
 
 //----------------------------------------------------
-void appController::drawGUI(){
-	LT.draw(0,0);
-	
+void appController::drawGUI() {
+	LT.draw(0, 0);
+
 	ofSetColor(255, 255, 255);
-	
+
 	noticeImg.draw(4, 246);
 	settingsImg.draw(13, 404);
-				
-	glPushMatrix();
-		glTranslatef(50, 5, 0);
-		drawText("Colors tracked", 574, 423);
-		LT.drawColorRange(577, 429, 120, 44);
-		
-		ofSetColor(255, 255, 255);
-		
-		//put custom brush tool stuff here for your brush
-		string brushName = "pngBrush";
-		if(brushes[brushMode]->getName() == brushName){
-			drawText("Current brush", 574, 497);
-			brushes[brushMode]->drawTool(577, 503, 32, 32);
-		}
-					
-		drawText("Brush color", 573, 559);
-		CM.drawColorPanel(577, 564, 128, 24, 5);
-		
-	glPopMatrix();
-	
-	GUI.drawCollapsedStyle(300, 415, 200, 13.0);
-	
-	ofSetColor(255,255,255,90);
-	
+
+	ofPushMatrix();
+	ofTranslate(50, 5);
+	drawText("Colors tracked", 574, 423);
+	LT.drawColorRange(577, 429, 120, 44);
+
+	ofSetColor(255, 255, 255);
+
+	//put custom brush tool stuff here for your brush
+	string brushName = "pngBrush";
+	if (brushes[brushMode]->getName() == brushName) {
+		drawText("Current brush", 574, 497);
+		brushes[brushMode]->drawTool(577, 503, 32, 32);
+	}
+
+	drawText("Brush color", 573, 559);
+	CM.drawColorPanel(577, 564, 128, 24, 5);
+
+	ofPopMatrix();
+
+	GUI.draw();
+	ofSetColor(255, 255, 255, 90);
+
 	//if we are a vector brush
-	if( brushes[brushMode]->getIsVector() ){
+	if (brushes[brushMode]->getIsVector()) {
 		brushes[brushMode]->draw(640, 0, 320, 240);
 		IP.drawMiniProjectionTool(640, 0, true, false);
 	}
@@ -670,22 +606,22 @@ void appController::drawGUI(){
 }
 
 //----------------------------------------------------		
-void appController::drawStatusMessage(){
-		
-	int txtFade = getFade();	
-		
-	if(txtFade > 0){
-		
+void appController::drawStatusMessage() {
+
+	int txtFade = getFade();
+
+	if (txtFade > 0) {
+
 		float elapsed = ofGetElapsedTimeMillis() - getFadeTimeMs();
-		
-		if(elapsed > STATUS_SHOW_TIME/2){
-			txtFade = 255 - ((int)(255.0*(elapsed/STATUS_SHOW_TIME)));
+
+		if (elapsed > STATUS_SHOW_TIME / 2) {
+			txtFade = 255 - ((int)(255.0 * (elapsed / STATUS_SHOW_TIME)));
 			setFade(txtFade);
-		} 
-				
-		ofSetColor(txtFade*2, txtFade*2, txtFade*2);
+		}
+
+		ofSetColor(txtFade * 2, txtFade * 2, txtFade * 2);
 		ofDrawRectangle(0, 752, 800, 16);
-		
+
 		ofSetColor(txtFade, 0, 0);
 		drawText(getCommonText(), 5, 762);
 		txtFade--;
