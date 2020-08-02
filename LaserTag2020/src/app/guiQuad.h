@@ -33,7 +33,8 @@ class guiQuad : public baseGui{
 		//with 	width  = maxW
 		//		height = maxH 
 		void setQuadPoints( ofPoint * inPts );
-		
+		ofMatrix4x4 getHomography(vector<cv::Point2f> cvSrcPos, vector<cv::Point2f> cvDstPos);
+		ofMatrix4x4 getHomography(ofPoint src[4], ofPoint dst[4]);
 		bool selectPoint(float x, float y, float offsetX, float offsetY, float width, float height, float hitArea);
 		bool updatePoint(float x, float y, float offsetX, float offsetY, float width, float height);
 		

@@ -2,10 +2,10 @@
 <Settings>
 	<Brush_Settings>
 		<Brush_mode>0</Brush_mode>
-		<Brush_width>4</Brush_width>
-		<Brush_image_style>0</Brush_image_style>
-		<Brush_color>0</Brush_color>
-		<Line_resolution>40</Line_resolution>
+		<Brush_width>71</Brush_width>
+		<Brush_image_style>2</Brush_image_style>
+		<Brush_color>6</Brush_color>
+		<Line_resolution>42</Line_resolution>
 		<Proj_Brightness>100</Proj_Brightness>
 	</Brush_Settings>
 	<Drip_settings>
@@ -15,14 +15,14 @@
 		<Drips_direction>0</Drips_direction>
 	</Drip_settings>
 	<Tracking_settings>
-		<Hue_Point>0.28</Hue_Point>
-		<Hue_Thresh_Width>0.17</Hue_Thresh_Width>
-		<Sat_Threshold>0.22</Sat_Threshold>
-		<Value_Threshold>0.160001</Value_Threshold>
-		<Min_blob_size>8</Min_blob_size>
+		<Hue_Point>1</Hue_Point>
+		<Hue_Thresh_Width>0.77551</Hue_Thresh_Width>
+		<Sat_Threshold>0</Sat_Threshold>
+		<Value_Threshold>0.397959</Value_Threshold>
+		<Min_blob_size>3</Min_blob_size>
 		<Advanced_quad>1</Advanced_quad>
-		<Activity_thresh>10</Activity_thresh>
-		<Jump_dist>0.928571</Jump_dist>
+		<Activity_thresh>28</Activity_thresh>
+		<Jump_dist>0.147959</Jump_dist>
 	</Tracking_settings>
 	<Clear_zone_settings>
 		<Use_clear_zone>1</Use_clear_zone>
@@ -33,7 +33,7 @@
 		<Clear_height>33</Clear_height>
 	</Clear_zone_settings>
 	<Music_player_settings>
-		<Play_music>0</Play_music>
+		<Play_music>1</Play_music>
 		<Which_track>0</Which_track>
 		<Volume>80</Volume>
 	</Music_player_settings>
@@ -43,4 +43,13 @@
 		<Camera_Width>640</Camera_Width>
 		<Camera_Height>480</Camera_Height>
 	</Camera_settings>
+	<Network_settinSgs>
+		<Enable_Network>0</Enable_Network>
+		<Send_data>0</Send_data>
+		<UDP_0____TCP_>1</UDP_0____TCP_>
+		<ip:_val_xxx_xxx_xxx>127</ip:_val_xxx_xxx_xxx>
+		<ip:_xxx_val_xxx_xxx>0</ip:_xxx_val_xxx_xxx>
+		<ip:_xxx_xxx_val_xxx>0</ip:_xxx_xxx_val_xxx>
+		<ip:_xxx_xxx_xxx_val>1</ip:_xxx_xxx_xxx_val>
+	</Network_settinSgs>
 </Settings>

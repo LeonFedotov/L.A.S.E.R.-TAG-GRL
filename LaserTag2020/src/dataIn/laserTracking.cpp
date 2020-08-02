@@ -87,6 +87,7 @@ void laserTracking::setupVideo(string videoPath) {
 	VP.setUseTexture(true);
 	W = VP.getWidth();
 	H = VP.getHeight();
+	cout << "setupVideo" << W << H << endl;
 	bVideoSetup = true;
 	noLaserCounter = 0;
 	distDifference = 0.0;
@@ -108,7 +109,7 @@ void laserTracking::setupCV(string filePath) {
 	VideoFrame.allocate(W, H);
 	WarpedFrame.allocate(W, H);
 	PresenceFrame.allocate(W, H);
-
+	cout << W << " " << H << endl;
 	//we do all our tracking at 320 240 - regardless 
 	//of camera size - larger cameras get scaled down to
 	//these dimensions - otherwise 'shit would be slow'
@@ -153,65 +154,60 @@ void laserTracking::setupCV(string filePath) {
 //the heart of the beast - where we process 
 //the incoming frame and look for a laser
 //---------------------------		
-void laserTracking::processFrame(float hue, float hueThresh, float sat, float value, int minSize, int deadCount, float jumpDist, bool slowButAccurateQuad) {
+void laserTracking::processFrame(float hue, float hueThresh, float sat, float value, int minSize, int deadCount, float jumpDist) {
 	int t1, t2, t3, t4, t5;
 
-	accurateQuad = slowButAccurateQuad;
-
-	//int t0 = ofGetElapsedTimeMillis();
+	int t0 = ofGetElapsedTimeMillis();
 
 	///////////////////////////////////////////////////////////
 	// Part 1 - get the video data
 	///////////////////////////////////////////////////////////
 
 	//pointer to our incoming video pixels			
-	unsigned char* pixCam;
+	ofPixels pixCam;
 	bool newFrame = false;
 	//either grab pixels from video or grab from camera
 	if (bVideoSetup) {
 		VP.update();
 		if (VP.isFrameNew()) {
 			newFrame = true;
-			pixCam = VP.getPixels().getData();
+			pixCam = VP.getPixels();
 		}
 	}
 	else {
 		VG.update();
-		if (VP.isFrameNew()) {
+		if (VG.isFrameNew()) {
 			newFrame = true;
-			pixCam = VG.getPixels().getData();
+			pixCam = VG.getPixels();
 		}
 
 	}
 
 
-	t1 = ofGetElapsedTimeMillis();
 
-
-	///////////////////////////////////////////////////////////
-	// Part 2 - warp the video based on our quad
-	///////////////////////////////////////////////////////////
 	if (newFrame) {
+
+		///////////////////////////////////////////////////////////
+		// Part 2 - warp the video based on our quad
+		///////////////////////////////////////////////////////////
+
+		t1 = ofGetElapsedTimeMillis();
 		//add to openCV and warp to our dst image
-		VideoFrame.setFromPixels(pixCam, W, H);
-		if (accurateQuad) {
-			WarpedFrame.warpIntoMe(VideoFrame, QUAD.getScaledQuadPoints(W, H), warpDst);
-		}
+		VideoFrame.setFromPixels(pixCam);
+		WarpedFrame.warpIntoMe(VideoFrame, QUAD.getScaledQuadPoints(W, H), warpDst);
 
 		//WarpedFrame.wao hsv and search for matching pixels
 		////////////////////////////////////////////////////////////
-
 		//Get pixels and convert to hue sat and value;
-		hsvFrame = VideoFrame;
+		hsvFrame = WarpedFrame;
 		hsvFrame.convertRgbToHsv();
-
 
 
 		//okay time to look for our laser!
 		//based on hue sat and val
 		int totalPixels = W * H * 3;
 
-		unsigned char* pix = hsvFrame.getPixels().getData();
+		ofPixels pix = hsvFrame.getPixels();
 
 		float h = hue * 255;
 		float ht = hueThresh * 255;
@@ -243,92 +239,15 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 		float clearYMax = clearZone.points[2].y * (float)H;
 
 
-		if (accurateQuad) {
-
-			int i, stride;
-			for (int y = clearYMin; y < clearYMax; y++) {
-
-				stride = y * W * 3;
-				for (int x = clearXMin; x < clearXMax; x++) {
-
-					i = stride + x * 3;
-
-					if (pix[i + 1] >= s && pix[i + 2] >= v) {
-
-						//we do this to check the cases when the
-						//hue min could have wrapped
-						//or the hue max could have wrapped
-						//also if saturation is zero
-						//then hue doesn't matter hence (s == 0)         
-						float pixHue = pix[i];
-
-						if ((s == 0) || (pixHue >= hueMin && pixHue <= hueMax) ||
-							(pixHue - 255 >= hueMin && pixHue - 255 <= hueMax) ||
-							(pixHue + 255 >= hueMin && pixHue + 255 <= hueMax)) {
 
 
-							if (clearActive && x > clearXMin && x < clearXMax) {
-								if (y > clearYMin && y < clearYMax) {
-									clearCount++;
-								}
-							}
-						}
-					}
-				}
-			}
+		int i, stride;
+		for (int y = clearYMin; y < clearYMax; y++) {
 
+			stride = y * W * 3;
+			for (int x = clearXMin; x < clearXMax; x++) {
 
-			//Get pixels and convert to hue sat and value;
-			hsvFrame = WarpedFrame;
-			hsvFrame.convertRgbToHsv();
-			pix = hsvFrame.getPixels().getData();
-
-			k = 0;
-
-			for (int i = 0; i < totalPixels; i += 3) {
-
-				float pixHue = pix[i];
-
-				if (pix[i + 1] >= s && pix[i + 2] >= v) {
-
-					//we do this to check the cases when the
-					//hue min could have wrapped
-					//or the hue max could have wrapped
-					//also if saturation is zero
-					//then hue doesn't matter hence (s == 0)               
-					if ((s == 0) || (pixHue >= hueMin && pixHue <= hueMax) ||
-						(pixHue - 255 >= hueMin && pixHue - 255 <= hueMax) ||
-						(pixHue + 255 >= hueMin && pixHue + 255 <= hueMax)) {
-
-						//we have a white pixel
-						pre[k] = 255;
-					}
-					else pre[k] = 0;
-				}
-				else pre[k] = 0;
-
-				k++;
-			}
-
-
-		}
-		else {
-
-			ofPoint* pts = QUAD.getScaledQuadPoints(W, H);
-
-			float ptsx[4] = { pts[0].x, pts[1].x, pts[2].x, pts[3].x };
-			float ptsy[4] = { pts[0].y, pts[1].y, pts[2].y, pts[3].y };
-
-			k = 0;
-			x = 0;
-			y = 0;
-
-			for (int i = 0; i < totalPixels; i += 3) {
-
-				if (x >= W) {
-					x = 0;
-					y++;
-				}
+				i = stride + x * 3;
 
 				if (pix[i + 1] >= s && pix[i + 2] >= v) {
 
@@ -349,42 +268,55 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 								clearCount++;
 							}
 						}
-
-						//if we are not in the polygon
-						 //don't draw
-
-						if (!pnpoly(4, ptsx, ptsy, x, y)) {
-							pre[k] = 0;
-							x++;
-							k++;
-							continue;
-						}
-
-						//we have a white pixel
-						pre[k] = 255;
 					}
-					else pre[k] = 0;
+				}
+			}
+		}
+
+
+		//Get pixels and convert to hue sat and value;
+		hsvFrame = WarpedFrame;
+		hsvFrame.convertRgbToHsv();
+		pix = hsvFrame.getPixels();
+
+		k = 0;
+
+		for (int i = 0; i < totalPixels; i += 3) {
+
+			float pixHue = pix[i];
+
+			if (pix[i + 1] >= s && pix[i + 2] >= v) {
+
+				//we do this to check the cases when the
+				//hue min could have wrapped
+				//or the hue max could have wrapped
+				//also if saturation is zero
+				//then hue doesn't matter hence (s == 0)               
+				if ((s == 0) || (pixHue >= hueMin && pixHue <= hueMax) ||
+					(pixHue - 255 >= hueMin && pixHue - 255 <= hueMax) ||
+					(pixHue + 255 >= hueMin && pixHue + 255 <= hueMax)) {
+
+					//we have a white pixel
+					pre[k] = 255;
 				}
 				else pre[k] = 0;
-
-				x++;
-				k++;
 			}
+			else pre[k] = 0;
 
+			k++;
 		}
 
 		if (clearActive && clearCount >= clearThresh) {
 			shouldClear = true;
 		}
 
-		//t3 = ofGetElapsedTimeMillis();
+		t3 = ofGetElapsedTimeMillis();
 
 
 		///////////////////////////////////////////////////////////
 		// Part 4 - find the largest blob of possible candidates 
 		////////////////////////////////////////////////////////////
 
-		//lets find blobs!
 		PresenceFrame.setFromPixels(pre, W, H);
 
 		//max blob size - our laser shouldn't be bigger
@@ -398,9 +330,9 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 		// Part 3 - convert tsize 400
 
 		int maxSize = 999999999;
-		Contour.findContours(PresenceFrame, minSize, maxSize, 50, false);
+		Contour.findContours(PresenceFrame, minSize, maxSize, 150, false, true);
 
-		//t4 = ofGetElapsedTimeMillis();
+		t4 = ofGetElapsedTimeMillis();
 
 		//printf("v%i - w%i - h%i - b%i = %i\n", t1-t0, t2-t1, t3-t2, t4-t3, t4-t0);
 
@@ -431,17 +363,6 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 			dst[3].x = 0;
 			dst[3].y = 1;
 
-			if (!accurateQuad) {
-
-				ofPoint* src = QUAD.getQuadPoints();
-
-				CW.calculateMatrix(src, dst);
-				ofPoint out = CW.transform(tmpX, tmpY);
-
-				tmpX = out.x;
-				tmpY = out.y;
-
-			}
 
 			//calculate the horizontal and vertical distance 
 			//between the last point
@@ -609,35 +530,45 @@ void laserTracking::calcColorRange(float hue, float hueThresh, float sat, float 
 
 //---------------------------				
 void laserTracking::draw(float x, float y) {
-
+	ofPushMatrix();
+	ofTranslate(x, y);
 	//lets draw our openCV frames
 	//with a nice border around them
-	ofNoFill();
+	
 	ofSetHexColor(0xFFFFFF);
+	ofFill();
 	VideoFrame.draw(0, 0, 320, 240);
+	ofNoFill();
 	ofDrawRectangle(0, 0, 320, 240);
-
-	if (accurateQuad)WarpedFrame.draw(320, 0, 320, 240);
-	else PresenceFrame.draw(320, 0, 320, 240);
+	ofFill();
+	WarpedFrame.draw(320, 0, 320, 240);
 	ofNoFill();
 	ofDrawRectangle(320, 0, 320, 240);
-	ofFill();
+	
 
 	//lets draw the contours to show our blobs!
-	glPushMatrix();
-	glTranslatef(320, 0, 0);
-	glScalef(320.0 / (float)W, 240.0 / (float)H, 1);
+	ofPushMatrix();
+	ofTranslate(320, 0, 0);
+	ofScale(320.0 / (float)W, 240.0 / (float)H, 1);
 	ofSetHexColor(0xFF00FF);
-	//Contour.draw();
-	glPopMatrix();
+	Contour.draw();
+	ofPopMatrix();
 
 	if (clearZone.getActive())drawClearZone(0, 0, 320, 240);
 
 	//lets draw our camera quad
 	QUAD.draw(0, 0, 320, 240);
-
+	ofPopMatrix();
 }
 
+void laserTracking::drawDebug() {
+	ofPushMatrix();
+	VideoFrame.draw(0, 0);
+	WarpedFrame.draw(0,  VideoFrame.getHeight(), 320, 240);
+	PresenceFrame.draw(0,  VideoFrame.getHeight()+WarpedFrame.getHeight(), 320, 240);
+	hsvFrame.draw(0,  VideoFrame.getHeight() + WarpedFrame.getHeight() + PresenceFrame.getHeight(), 320, 240);
+	ofPopMatrix();
+}
 
 //---------------------------		
 void laserTracking::drawColorRange(float x, float y, float w, float h) {

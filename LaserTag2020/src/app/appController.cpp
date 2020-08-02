@@ -62,7 +62,7 @@ void appController::setup() {
 			CAM_HEIGHT = camHeight;
 		}
 	}
-	else LT.setupVideo("videos/lasertag_test.mov");
+	else LT.setupVideo("videos/0_lasertag-IR-trackLaser.mov");
 
 	LT.setupCV(ofToDataPath("settings/quad.xml"));
 
@@ -73,16 +73,14 @@ void appController::setup() {
 	webMovieLoaded = VP.load("http://graffitiresearchlab.com/lasertag2000/helloFromGRL.php?" + ofToString(ofRandom(10000, 50000)));
 	if (webMovieLoaded)VP.play();
 
-	//reloadSettings();
 }
 
 //-----------------------------------------------------------
 void appController::setupBrushes(int w, int h) {
 
 	brushes[0] = new pngBrush();
-	brushes[1] = new graffLetter();
-	brushes[2] = new vectorBrush();
-	brushes[3] = new gestureBrush();
+	brushes[1] = new vectorBrush();
+	brushes[2] = new gestureBrush();
 
 	for (int i = 0; i < NUM_BRUSHES; i++) {
 		brushes[i]->setup(w, h);
@@ -106,7 +104,7 @@ void appController::loadSettings() {
 	GUI.setup("Settings");
 
 	BRUSH_SETTINGS.setName("Brush Settings");
-	BRUSH_SETTINGS.add(BRUSH_MODE.set("Brush mode", 0, 0, NUM_BRUSHES - 1));
+	BRUSH_SETTINGS.add(BRUSH_MODE.set("Brush mode", 0, 0,3));
 	BRUSH_MODE.addListener(this, &appController::onBrushModeChange);
 	BRUSH_SETTINGS.add(BRUSH_WIDTH.set("Brush width", 4, 2, 128));
 	BRUSH_WIDTH.addListener(this, &appController::onBrushModeChange);
@@ -132,7 +130,6 @@ void appController::loadSettings() {
 	TRACKING_SETTINGS.add(SAT_POINT.set("Sat Threshold", 0.219999999, 0.0f, 1.0f));
 	TRACKING_SETTINGS.add(VAL_POINT.set("Value Threshold", 0.160000995, 0.0f, 1.0f));
 	TRACKING_SETTINGS.add(MIN_BLOB_SIZE.set("Min blob size", 8, 1, 100));
-	TRACKING_SETTINGS.add(ADVANCED_QUAD.set("Advanced quad", false));
 	TRACKING_SETTINGS.add(ACTIVITY.set("Activity thresh", 10, 0, 100));
 	TRACKING_SETTINGS.add(JUMP_DIST.set("Jump dist", 0.610000014, 0.0f, 1.0f));
 	GUI.add(TRACKING_SETTINGS);
@@ -150,12 +147,13 @@ void appController::loadSettings() {
 	NETWORK_SETTINGS.add(NETWORK_SEND.set("Enable Network", false));
 	NETWORK_SEND.addListener(this, &appController::onEnableNetwork);
 	NETWORK_SETTINGS.add(SEND_DATA.set("Send data", false));
-	NETWORK_SETTINGS.add(UDP_OR_TCP.set("UDP(0) / TCP(*)", true));
+	NETWORK_SETTINGS.add(UDP_OR_TCP.set("UDP(0) / TCP(", true));
 	NETWORK_SETTINGS.add(IP_PT1.set("ip: val.xxx.xxx.xxx", 127, 0, 255));
 	NETWORK_SETTINGS.add(IP_PT2.set("ip: xxx.val.xxx.xxx", 0, 0, 255));
 	NETWORK_SETTINGS.add(IP_PT3.set("ip: xxx.xxx.val.xxx", 0, 0, 255));
 	NETWORK_SETTINGS.add(IP_PT4.set("ip: xxx.xxx.xxx.val", 1, 0, 255));
 	NETWORK_SETTINGS.add(PORT.set("port:", 5544, 0, 65000));
+	GUI.add(NETWORK_SETTINGS);
 
 	MUSIC_SETTINGS.setName("Music player settings");
 	MUSIC_SETTINGS.add(MUSIC.set("Play music", true));
@@ -173,6 +171,7 @@ void appController::loadSettings() {
 	GUI.add(CAMERA_SETTINGS);
 
 	GUI.loadFromFile(ofToDataPath("settings/settings.xml"));
+
 }
 
 
@@ -198,7 +197,6 @@ void appController::mainLoop() {
 	if (SEND_DATA && LT.newData()) {
 		handleNetworkSending();
 	}
-
 	//this deals with telling our brushes
 	//all about the settings that are being
 	//changed
@@ -273,7 +271,7 @@ void appController::trackLaser() {
 	LT.setClearThreshold(CLEAR_THRESH);
 
 	//lets process the video data to track that laser
-	LT.processFrame(HUE_POINT, HUE_WIDTH, SAT_POINT, VAL_POINT, MIN_BLOB_SIZE, ACTIVITY, JUMP_DIST, ADVANCED_QUAD);
+	LT.processFrame(HUE_POINT, HUE_WIDTH, SAT_POINT, VAL_POINT, MIN_BLOB_SIZE, ACTIVITY, JUMP_DIST);
 
 	//clear the images if the clear zone is hit
 	if (LT.isClearZoneHit()) {
@@ -309,6 +307,15 @@ void appController::manageMusic() {
 	///////////////////////////////////////////////////////////
 
 	int whichTrack = TRACK;
+
+	if (MUSIC) {
+		TP.unPause();
+		TP.setVolume(VOL);
+	}
+	else {
+		TP.pause();
+	}
+
 
 	if (TRACK != TP.getCurrentTrackNo()) {
 
@@ -512,97 +519,73 @@ void appController::keyRelease(int key) {
 //----------------------------------------------------
 void appController::draw() {
 
-	if (singleScreenMode) {
-
-		//make sure we have a black background
-		ofSetColor(0, 0, 0);
-		ofDrawRectangle(0, 0, 1024, 768);
-
-		//if we are a vector brush
-		if (brushes[brushMode]->getIsVector()) {
-			brushes[brushMode]->draw(0, 0, 1024, 768);
-			IP.drawProjectionMask(0, 0, 1024, 768);
-		}
-		else IP.drawProjectionTex(0, 0, 1024, 768);
-
-		if (toggleGui)IP.drawProjectionToolHandles(0, 0, 1024, 768, false, true);
-
-		ofSetHexColor(0x555555);
-		if (toggleGui)ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 740);
-
-		if (webMovieLoaded) {
-			ofSetHexColor(0xFFFFFF);
-			VP.draw(20, 20, 984, 728);
-		}
-	}
-	else {
-		drawGUI();
-
-		ofSetColor(150, 150, 150);
-		drawText("fps: " + ofToString(ofGetFrameRate()), 10, 740);
-
-		//make sure we have a black background
-		ofSetColor(0, 0, 0);
-		ofDrawRectangle(1024, 0, 1024, 768);
-
-		//if we are a vector brush
-		if (brushes[brushMode]->getIsVector()) {
-			brushes[brushMode]->draw(1024, 0, 1024, 768);
-			IP.drawProjectionMask(1024, 0, 1024, 768);
-		}
-		else IP.drawProjectionTex(1024, 0, 1024, 768);
-
-		if (toggleGui)IP.drawProjectionToolHandles(1024, 0, 1024, 768, false, true);
-
-		if (webMovieLoaded) {
-			ofSetHexColor(0xFFFFFF);
-			VP.draw(20, 20, 984, 728);
-			VP.draw(1044, 20, 984, 728);
-		}
-	}
-
-}
-
-
-//----------------------------------------------------
-void appController::drawGUI() {
-	LT.draw(0, 0);
 
 	ofSetColor(255, 255, 255);
+	LT.draw(0, 0);
 
-	noticeImg.draw(4, 246);
-	settingsImg.draw(13, 404);
+	noticeImg.draw(0, 240);
 
 	ofPushMatrix();
 	ofTranslate(50, 5);
-	drawText("Colors tracked", 574, 423);
-	LT.drawColorRange(577, 429, 120, 44);
+	drawText("Colors tracked", 10, 423);
+	LT.drawColorRange(10, 429, 120, 44);
 
 	ofSetColor(255, 255, 255);
 
 	//put custom brush tool stuff here for your brush
 	string brushName = "pngBrush";
 	if (brushes[brushMode]->getName() == brushName) {
-		drawText("Current brush", 574, 497);
-		brushes[brushMode]->drawTool(577, 503, 32, 32);
+		drawText("Current brush", 10, 497);
+		brushes[brushMode]->drawTool(10, 503, 32, 32);
 	}
 
-	drawText("Brush color", 573, 559);
-	CM.drawColorPanel(577, 564, 128, 24, 5);
+	drawText("Brush color", 10, 559);
+	CM.drawColorPanel(10, 564, 128, 24, 5);
 
 	ofPopMatrix();
 
-	GUI.draw();
+
 	ofSetColor(255, 255, 255, 90);
 
 	//if we are a vector brush
 	if (brushes[brushMode]->getIsVector()) {
 		brushes[brushMode]->draw(640, 0, 320, 240);
 		IP.drawMiniProjectionTool(640, 0, true, false);
+		brushes[brushMode]->draw(1024, 0, 1024, 768);
+		IP.drawProjectionMask(1024, 0, 1024, 768);
 	}
-	else IP.drawMiniProjectionTool(640, 0, true, true);
+	else {
+		IP.drawMiniProjectionTool(640,0, true, true);
+		IP.drawProjectionTex(1024, 0, 1024, 768);
+	}
 
 	drawStatusMessage();
+
+
+
+	drawGUI();
+
+	ofSetColor(150, 150, 150);
+	drawText("fps: " + ofToString(ofGetFrameRate()), 10, 740);
+
+	//make sure we have a black background
+
+	if (toggleGui)IP.drawProjectionToolHandles(1024, 0, 1024, 768, false, true);
+
+	if (webMovieLoaded) {
+		ofSetHexColor(0xFFFFFF);
+		VP.draw(20, 20, 984, 728);
+		VP.draw(1044, 20, 984, 728);
+	}
+
+	if(ofGetKeyPressed('d')) LT.drawDebug();
+	GUI.draw();
+}
+
+
+//----------------------------------------------------
+void appController::drawGUI() {
+
 }
 
 //----------------------------------------------------		

@@ -5,8 +5,8 @@
 
 //we actually project at 1024 by 768
 //but we stretch our texture up from 640 by 480
-#define PROJECTION_W 1280
-#define PROJECTION_H 720
+#define PROJECTION_W 1920
+#define PROJECTION_H 1080
 
 //utils for fake horz span 
 //on win32
@@ -22,9 +22,10 @@
 #include "colorManager.h"
 
 //our brushes
-#define NUM_BRUSHES 4
+#define NUM_BRUSHES 3
 
 #include "baseBrush.h"  	//our base brush class - you must inhereit this to add your own
+#include "basicVectorBrush.h"
 #include "pngBrush.h"  		//the main png brush - allows you to design your own letters - by Theodore Watson
 #include "graffLetter.h" 	//3D Looking bubble letters - by Zachary Lieberman
 #include "vectorBrush.h" 	//openGL brush - different drawing modes - by Theodore Watson
@@ -107,7 +108,6 @@ class appController : public baseGui{
 		ofParameter<float> SAT_POINT;
 		ofParameter<float> VAL_POINT;
 		ofParameter<int> MIN_BLOB_SIZE;
-		ofParameter<bool> ADVANCED_QUAD;
 		ofParameter<int> ACTIVITY;
 		ofParameter<float> JUMP_DIST;
 

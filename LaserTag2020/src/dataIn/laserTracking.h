@@ -3,7 +3,7 @@
 
 #include "ofMain.h"
 #include "ofxOpenCv.h"
-
+#include "ofxCv.h"
 #include "baseGui.h"
 #include "guiQuad.h"
 #include "laserUtils.h"
@@ -45,7 +45,7 @@ class laserTracking : public baseGui{
 		//the heart of the beast - where we process 
 		//the incoming frame and look for a laser
 		//---------------------------		
-		void processFrame(float hue, float hueThresh, float sat, float value, int minSize, int deadCount, float jumpDist, bool slowButAccurateQuad);		
+		void processFrame(float hue, float hueThresh, float sat, float value, int minSize, int deadCount, float jumpDist);		
 	
 		//if you want to warp the coords to another quad - give the four points 
 		//-----------------------------------------------------------------------
@@ -69,6 +69,7 @@ class laserTracking : public baseGui{
 
 		void calcColorRange(float hue, float hueThresh, float sat, float value);
 		void draw(float x, float y);
+		void drawDebug();
 		void drawColorRange(float x, float y, float w, float h);
 		void drawClearZone(float x, float y, float w, float h);
 		void drawQuadSetupImage(float x, float y, float w, float h);
@@ -100,7 +101,7 @@ class laserTracking : public baseGui{
 		
 		string sendStr;
 		
-		bool bCameraSetup, bVideoSetup, newPos, newStroke, shouldClear, accurateQuad;
+		bool bCameraSetup, bVideoSetup, newPos, newStroke, shouldClear;
 		
 		int W;
 		int H;
@@ -119,6 +120,9 @@ class laserTracking : public baseGui{
 		hitZone brushZone;
 		
 		int r0Min, r0Max, g0Min, g0Max, b0Min, b0Max, r1Min, r1Max, g1Min, g1Max, b1Min, b1Max;
+
+
+		ofxCv::ContourFinder contourFinder;
 };
 
 #endif

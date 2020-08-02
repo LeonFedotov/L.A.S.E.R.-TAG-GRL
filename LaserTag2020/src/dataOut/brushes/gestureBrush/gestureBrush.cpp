@@ -58,11 +58,11 @@ void gestureBrush::draw(int x, int y, int w, int h){
 	float pct = (float)brushBrightness * 0.01;
 
 	ofSetColor( (float)red * pct, (float)green  * pct, (float)blue * pct);	
-	glPushMatrix();
-		glTranslatef(x, y, 0);
-		glScalef(scaleX, scaleY, 1);
+	ofPushMatrix();
+		ofTranslate(x, y, 0);
+		ofScale(scaleX, scaleY, 1);
 		sm.draw();	
-	glPopMatrix();
+	ofPopMatrix();
 		
 }
 

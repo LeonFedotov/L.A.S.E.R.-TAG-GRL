@@ -192,6 +192,38 @@ void guiQuad::saveToFile(string filePath, string newQuadName){
 	xml.saveFile(filePath);
 }		
 
+ofMatrix4x4 guiQuad::getHomography(vector<cv::Point2f> cvSrcPos, vector<cv::Point2f> cvDstPos) {
+	ofMatrix4x4 homographyMat;
+	cv::Mat homography = cv::findHomography(cvSrcPos, cvDstPos);
+	homographyMat.getPtr()[0] = homography.at<double>(0, 0);
+	homographyMat.getPtr()[4] = homography.at<double>(0, 1);
+	homographyMat.getPtr()[12] = homography.at<double>(0, 2);
+
+	homographyMat.getPtr()[1] = homography.at<double>(1, 0);
+	homographyMat.getPtr()[5] = homography.at<double>(1, 1);
+	homographyMat.getPtr()[13] = homography.at<double>(1, 2);
+
+	homographyMat.getPtr()[3] = homography.at<double>(2, 0);
+	homographyMat.getPtr()[7] = homography.at<double>(2, 1);
+	homographyMat.getPtr()[15] = homography.at<double>(2, 2);
+	return homographyMat;
+}
+
+ofMatrix4x4 guiQuad::getHomography(ofPoint src[4], ofPoint dst[4]) {
+	vector<cv::Point2f> cvSrcPos, cvDstPos;
+	
+		cvSrcPos.push_back(cv::Point2f(src[0].x, src[0].y));
+		cvSrcPos.push_back(cv::Point2f(src[1].x, src[1].y));
+		cvSrcPos.push_back(cv::Point2f(src[2].x, src[2].y));
+		cvSrcPos.push_back(cv::Point2f(src[3].x, src[3].y));
+
+		cvDstPos.push_back(cv::Point2f(dst[0].x, dst[0].y));
+		cvDstPos.push_back(cv::Point2f(dst[1].x, dst[1].y));
+		cvDstPos.push_back(cv::Point2f(dst[2].x, dst[2].y));
+		cvDstPos.push_back(cv::Point2f(dst[3].x, dst[3].y));
+		return getHomography(cvSrcPos, cvDstPos);
+}
+
 //----------------------------------------------------
 void guiQuad::saveToFile(string filePath){
 	saveToFile(filePath, quadName);
@@ -201,20 +233,20 @@ void guiQuad::saveToFile(string filePath){
 void guiQuad::draw(float x, float y, float width, float height, int red, int green, int blue, int thickness){
 	
 	getScaledQuadPoints(width, height);
-	glPushMatrix();
-		glTranslatef(x, y, 0);
+	ofPushMatrix();
+		ofTranslate(x, y, 0);
 		
 		ofNoFill();
 		
 		ofSetColor(red, green, blue);
-		glLineWidth(thickness);
+		ofSetLineWidth(thickness);
 		glBegin(GL_LINE_LOOP);
 		for(int i = 0; i < 4; i++){
 			glVertex2f(srcScaled[i].x, srcScaled[i].y);
 		}
 		glEnd();
 		
-		glLineWidth(1);
+		ofSetLineWidth(1);
 		ofSetRectMode(OF_RECTMODE_CENTER);
 		for(int i = 0; i < 4; i++){
 			
@@ -223,11 +255,11 @@ void guiQuad::draw(float x, float y, float width, float height, int red, int gre
 			if(i == 2)ofSetColor(0, 0, 255);
 			if(i == 3)ofSetColor(0, 255, 255);
 
-			ofRect(srcScaled[i].x, srcScaled[i].y, 8, 8);
+			ofDrawRectangle(srcScaled[i].x, srcScaled[i].y, 8, 8);
 		}
 		ofSetRectMode(OF_RECTMODE_CORNER);
 		ofFill();
-	glPopMatrix();
+	ofPopMatrix();
 }
 
 //----------------------------------------------------

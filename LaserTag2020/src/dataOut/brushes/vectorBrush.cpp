@@ -110,9 +110,9 @@ void vectorBrush::draw(int x, int y, int w, int h){
 	float scaleX =  (float)w / (float)width;
 	float scaleY =  (float)h / (float)height;
 
-	glPushMatrix();
-		glTranslatef(x, y, 0);
-		glScalef(scaleX, scaleY, 1);
+	ofPushMatrix();
+		ofTranslate(x, y, 0);
+		ofScale(scaleX, scaleY, 1);
 		
 		if(brushNumber == 0)drawArrow(numStrokes,  8);
 		else 
@@ -122,7 +122,7 @@ void vectorBrush::draw(int x, int y, int w, int h){
 		else
 		if(brushNumber == 3)drawArrowFAT(numStrokes, 8);
 						
-	glPopMatrix();
+	ofPopMatrix();
 	
 }
 	

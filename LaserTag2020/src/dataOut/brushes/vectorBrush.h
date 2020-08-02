@@ -11,20 +11,22 @@
 
 #define NUM_BRUSH_MODES 4
 
-typedef struct{
-	ofPoint pts[MAX_STROKE_PTS];
-	ofPoint nrm[MAX_STROKE_PTS];
-	float width[MAX_STROKE_PTS];
-	ofPoint vec;
-	int num;
-	int r;
-	int g; 
-	int b;
-}singleStroke;
+
 
 //true vector brush - uses openGL shapes
 class vectorBrush : public baseBrush{
 	
+	typedef struct {
+		ofPoint pts[MAX_STROKE_PTS];
+		ofPoint nrm[MAX_STROKE_PTS];
+		float width[MAX_STROKE_PTS];
+		ofPoint vec;
+		int num;
+		int r;
+		int g;
+		int b;
+	}singleStroke;
+
 	public: 
 		
 		void setupCustom();

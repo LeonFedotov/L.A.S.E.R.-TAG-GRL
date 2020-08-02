@@ -41,7 +41,8 @@ class graffLetter : public baseBrush{
 		void setupBrush(ofxCvGrayscaleImage &brush, int width);
 		void setupShadowBrush(ofxCvGrayscaleImage &brush, int width);
 		void addDrip(float x1, float y1, float x2, float y2);
-		
+		void addIntoMe(ofxCvGrayscaleImage& target, ofxCvGrayscaleImage mom, int x, int y);
+		void composite(ofxCvGrayscaleImage src, ofxCvGrayscaleImage mom, ofxCvGrayscaleImage momsAlpha);
 		dripParticle		particles[MAX_DRIP_PARTICLES];
 
 		int 				borderSize;

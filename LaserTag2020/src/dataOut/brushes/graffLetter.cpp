@@ -141,10 +141,37 @@ void graffLetter::update(){
 
 	cvImgMix = cvImgTop;
     // toDo
-	//cvImgMix.composite(cvImgBottom, cvBottomLayerMask);
+	composite(cvImgMix, cvImgBottom, cvBottomLayerMask);
 }
 
+void graffLetter::composite(ofxCvGrayscaleImage src, ofxCvGrayscaleImage mom, ofxCvGrayscaleImage momsAlpha) {
+	// for now just mode ATOP...
+	// but we should add, over, in etc...
+	// http://www.gamedev.net/reference/articles/article320.asp
 
+	if (mom.width == width && mom.height == height) {
+		if (momsAlpha.width == width && momsAlpha.height == height) {
+			int pos;
+			register unsigned char alphaVal;
+			register unsigned char  val;
+			unsigned char* momData = (unsigned char*)mom.getCvImage()->imageData;
+			unsigned char* momAlphaData = (unsigned char*)momsAlpha.getCvImage()->imageData;
+			unsigned char* meData = (unsigned char*)src.getCvImage()->imageData;
+
+			int result = 0;
+			pos = 0;
+			for (int i = 0; i < height; i++) {
+				for (int j = 0; j < width; j++) {
+					alphaVal = *(momAlphaData + pos);
+					*(meData + pos) = ((*(meData + pos) * (255 - alphaVal)) +
+						(*(momData + pos) * alphaVal)) >> 8;
+					pos++;
+				}
+				pos = i * src.getCvImage()->widthStep;
+			}
+		}
+	}
+}
 
 //----------------------------------------------
 unsigned char * graffLetter::getImageAsPixels(){
@@ -158,7 +185,7 @@ void graffLetter::newLetter(){
 	cvImgBottom += cvImgWhite;
 	cvImgBottom -= cvImgBlack;
 	
-	//cvImgTop.composite(cvImgBottom, cvBottomLayerMask);
+	composite(cvImgTop, cvImgBottom, cvBottomLayerMask);
 	cvImgWhite.set(0);
 	cvImgBlack.set(0);
 	cvBottomLayerMask.set(0);
@@ -230,28 +257,69 @@ void graffLetter::addLine(float x1, float y1, float x2, float y2){
 	}
 	
 	// white
-//	for (int j = 0; j < nDivs; j++){
-//		cvImgWhite.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.5f), y1 + dy*j-(brushWidth*0.5f));
-//		cvBottomLayerMask.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.5f), y1 + dy*j-(brushWidth*0.5f));
-//	}
+	for (int j = 0; j < nDivs; j++){
+		addIntoMe(cvImgWhite, cvWhiteBrush, x1 + dx*j-(brushWidth*0.5f), y1 + dy*j-(brushWidth*0.5f));
+		addIntoMe(cvBottomLayerMask, cvWhiteBrush, x1 + dx*j-(brushWidth*0.5f), y1 + dy*j-(brushWidth*0.5f));
+	}
 //
 //	// offset!
-//	for (int j = 0; j < nDivs; j++){
-//		cvImgWhite.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.75f), y1 + dy*j-(brushWidth*0.75f));
-//		cvBottomLayerMask.addIntoMe(cvWhiteBrush, x1 + dx*j-(brushWidth*0.75f), y1 + dy*j-(brushWidth*0.75f));
-//	}
+	for (int j = 0; j < nDivs; j++){
+		addIntoMe(cvImgWhite, cvWhiteBrush, x1 + dx*j-(brushWidth*0.75f), y1 + dy*j-(brushWidth*0.75f));
+		addIntoMe(cvBottomLayerMask, cvWhiteBrush, x1 + dx*j-(brushWidth*0.75f), y1 + dy*j-(brushWidth*0.75f));
+	}
 //
-//	cvBottomLayerMask.addIntoMe(cvDropShadowBrush, x1 -(brushWidth*1.5f), y1 -(brushWidth*1.5f));
+	addIntoMe(cvBottomLayerMask, cvDropShadowBrush, x1 -(brushWidth*1.5f), y1 -(brushWidth*1.5f));
 //
 //
 //
 //	// black
-//	for (int j = 0; j < nDivs; j++){
-//		cvImgBlack.addIntoMe(cvBlackBrush, x1 + dx*j-(brushWidth*(17.0/40.0)), y1 + dy*j-(brushWidth*(17.0/40.0)));
-//	}
+	for (int j = 0; j < nDivs; j++){
+		addIntoMe(cvImgBlack, cvBlackBrush, x1 + dx*j-(brushWidth*(17.0/40.0)), y1 + dy*j-(brushWidth*(17.0/40.0)));
+	}
 		
 }
 
+
+void graffLetter::addIntoMe(ofxCvGrayscaleImage& target, ofxCvGrayscaleImage mom, int x, int y) {
+	IplImage* cvImageTemp = cvCreateImage(cvSize(target.getWidth(), target.getHeight()), IPL_DEPTH_8U, 1);
+	int ymin = MAX(0, y);
+	int ymax = MIN(0 + height, y + mom.height);
+	if (ymin >= ymax) {
+		return;
+	}
+	int xmax = MIN(0 + width, x + mom.width);
+	int xmin = MAX(0, x);
+	if (xmin >= xmax) {
+		return;
+	}
+
+
+	// there is an intersection which is the rectangle  { xmin, ymin, xmax, ymax } 	
+	//value->setValues(xmin,ymin,xmax-xmin,ymax-ymin);  
+	//printf("rectangle: %i %i %i %i \n", xmin,ymin,xmax-xmin,ymax-ymin);
+
+	// roi for ME = this  xmin,ymin,xmax-xmin,ymax-ymin
+	// pos for ME = xmin, ymin
+
+	// for them...
+
+	//if (x > 0)
+	int posThemX = x >= 0 ? 0 : abs(x);
+	int posThemY = y >= 0 ? 0 : abs(y);
+	int widthThem = xmax - xmin;
+	int heightThem = ymax - ymin;
+	//printf("rectangle them: %i %i %i %i \n", posThemX, posThemY, widthThem, heightThem);
+	cvSetImageROI(target.getCvImage(), cvRect(xmin, ymin, xmax - xmin, ymax - ymin));
+	cvSetImageROI(cvImageTemp, cvRect(xmin, ymin, xmax - xmin, ymax - ymin));
+	cvSetImageROI(mom.getCvImage(), cvRect(posThemX, posThemY, widthThem, heightThem));
+
+	cvAdd(target.getCvImage(), mom.getCvImage(), cvImageTemp);
+	cvCopy(cvImageTemp, target.getCvImage(), 0);
+
+	cvSetImageROI(target.getCvImage(), cvRect(0, 0, width, height));
+	cvSetImageROI(cvImageTemp, cvRect(0, 0, width, height));
+	cvSetImageROI(mom.getCvImage(), cvRect(0, 0, width, height));
+}
 
 
 //----------------------------------------------
@@ -265,26 +333,26 @@ void graffLetter::addDrip(float x1, float y1, float x2, float y2){
 	
 	
 	
-//	// white
-//	for (int j = 0; j < nDivs; j++){
-//		cvImgWhite.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(5.0/40.0)), y1 + dy*j-(brushWidth*(5.0/40.0)));
-//		cvBottomLayerMask.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(5.0/40.0)), y1 + dy*j-(brushWidth*(5.0/40.0)));
-//	}
-//	
-//	// offset!
-//	for (int j = 0; j < nDivs; j++){
-//		cvImgWhite.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(10.5/40.0)), y1 + dy*j-(brushWidth*(10.5/40.0)));
-//		cvBottomLayerMask.addIntoMe(cvDripWhiteBrush, x1 + dx*j-(brushWidth*(7.5/40.0)), y1 + dy*j-(brushWidth*(7.5/40.0)));
-//	}
-//	
-//	cvBottomLayerMask.addIntoMe(cvDripDropShadowBrush, x1 -(brushWidth*(15/40.0)), y1 -(brushWidth*(15/40.0)));
-//	
-//	
-//	
-//	// black 
-//	for (int j = 0; j < nDivs; j++){
-//		cvImgBlack.addIntoMe(cvDripBlackBrush, x1 + dx*j-(brushWidth*(4.25/40.0)), y1 + dy*j-(brushWidth*(4.25/40.0)));
-//	}
+	// white
+	for (int j = 0; j < nDivs; j++){
+		addIntoMe(cvImgWhite, cvDripWhiteBrush, x1 + dx*j-(brushWidth*(5.0/40.0)), y1 + dy*j-(brushWidth*(5.0/40.0)));
+		addIntoMe(cvBottomLayerMask, cvDripWhiteBrush, x1 + dx*j-(brushWidth*(5.0/40.0)), y1 + dy*j-(brushWidth*(5.0/40.0)));
+	}
+	
+	// offset!
+	for (int j = 0; j < nDivs; j++){
+		addIntoMe(cvImgWhite, cvDripWhiteBrush, x1 + dx*j-(brushWidth*(10.5/40.0)), y1 + dy*j-(brushWidth*(10.5/40.0)));
+		addIntoMe(cvBottomLayerMask, cvDripWhiteBrush, x1 + dx*j-(brushWidth*(7.5/40.0)), y1 + dy*j-(brushWidth*(7.5/40.0)));
+	}
+	
+	addIntoMe(cvBottomLayerMask, cvDripDropShadowBrush, x1 -(brushWidth*(15/40.0)), y1 -(brushWidth*(15/40.0)));
+	
+	
+	
+	// black 
+	for (int j = 0; j < nDivs; j++){
+		addIntoMe(cvImgBlack, cvDripBlackBrush, x1 + dx*j-(brushWidth*(4.25/40.0)), y1 + dy*j-(brushWidth*(4.25/40.0)));
+	}
 	
 }
 

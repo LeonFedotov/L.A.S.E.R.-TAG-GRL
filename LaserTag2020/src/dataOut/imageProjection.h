@@ -34,6 +34,7 @@ class imageProjection : public baseGui{
 		int selectMiniQuad(int x, int y, int hitArea);
 		bool updateMiniQuad(int x, int y);
 		void releaseAllQuads();
+		ofMatrix4x4 getMatrix(const ofPoint* srcPoints, const ofPoint* dstPoints);
 		
 		void drawMiniProjectionTool(float x, float y, bool showOutline, bool showTexture);
 		void drawProjectionToolHandles(float x, float y, float w, float h, bool showOutline, bool highlyVisible);		
@@ -41,6 +42,8 @@ class imageProjection : public baseGui{
 		void drawPreviewTex(float x, float y, float w, float h);
 		void drawProjectionMask(float x, float y, float w, float h);
 		
+
+		ofMatrix4x4 matrix;
 		//our textures and preview textures
 		ofTexture   colorTexture;
 		ofTexture 	colorPreviewTexture;

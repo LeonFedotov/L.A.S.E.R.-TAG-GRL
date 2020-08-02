@@ -14,13 +14,13 @@ void coordWarping::calculateMatrix(ofPoint src[4], ofPoint dst[4]){
 		cvsrc[i].y = src[i].y;
 		cvdst[i].x = dst[i].x;
 		cvdst[i].y = dst[i].y;
+
 	}
-	
-	cvWarpPerspective(cvsrc, cvdst, translate);  // calculate homography
+
+	cvGetPerspectiveTransform(cvsrc, cvdst, translate);  // calculate homography
 
 	int n       = translate->cols;
 	float *data = translate->data.fl;
-
 }
 
 //---------------------------		

@@ -9,21 +9,22 @@
 #define MAX_NUM_STROKES 256
 #define MAX_STROKE_PTS 512
 
-typedef struct{
-	ofPoint pts[MAX_STROKE_PTS];
-	float width[MAX_STROKE_PTS];
-	int num;
-	int r;
-	int g; 
-	int b;
-}singleStroke;
+
 
 
 //true vector brush - uses openGL shapes
 class basicVectorBrush : public baseBrush{
 	
 	public: 
-		
+	
+		typedef struct {
+			ofPoint pts[MAX_STROKE_PTS];
+			float width[MAX_STROKE_PTS];
+			int num;
+			int r;
+			int g;
+			int b;
+		}singleStroke;
 		//------------------------
 		void setupCustom(){
 		
@@ -98,9 +99,9 @@ class basicVectorBrush : public baseBrush{
 			float scaleX =  (float)w / (float)width;
 			float scaleY =  (float)h / (float)height;
 			
-			glPushMatrix();
-				glTranslatef(x, y, 0);
-				glScalef(scaleX, scaleY, 1);
+			ofPushMatrix();
+				ofTranslate(x, y, 0);
+				ofScale(scaleX, scaleY, 1);
 				
 				for(int i = 0; i <= whichStroke; i++){
 					ofSetColor(stroke[i].r, stroke[i].g, stroke[i].b);
@@ -108,7 +109,7 @@ class basicVectorBrush : public baseBrush{
 						ofLine(stroke[i].pts[j-1].x, stroke[i].pts[j-1].y, stroke[i].pts[j].x, stroke[i].pts[j].y);
 					}
 				}
-			glPopMatrix();
+			ofPopMatrix();
 		}
 	
 	protected:

@@ -138,17 +138,13 @@ void imageProjection::applyQuad(){
 
 	ofPoint * tmpPts = QUAD.getScaledQuadPoints(width, height);
 	
-//	colorTexture.setPoints(  	tmpPts[0].x , tmpPts[0].y ,
-//						tmpPts[1].x , tmpPts[1].y ,
-//						tmpPts[2].x , tmpPts[2].y ,
-//						tmpPts[3].x , tmpPts[3].y );
-//
-//	greyscaleTexture.setPoints(  	tmpPts[0].x , tmpPts[0].y ,
-//						tmpPts[1].x , tmpPts[1].y ,
-//						tmpPts[2].x , tmpPts[2].y ,
-//						tmpPts[3].x , tmpPts[3].y );
-					
-														
+	ofPoint p[4];
+	p[0] = ofPoint(0, 0);
+	p[1] = ofPoint(width, 0);
+	p[2] = ofPoint(width, height);
+	p[3] = ofPoint(0, height);
+	matrix = QUAD.getHomography(p, tmpPts);
+											
 }
 
  //-----------------------------------------------------		
@@ -227,13 +223,14 @@ void imageProjection::drawMiniProjectionTool(float x, float y, bool showOutline,
 	toolX = x;
 	toolY = y;
 
-	glPushMatrix();
-		glTranslatef(x, y, 0);
-		glScalef(scaleX, scaleY, 1.0);
+	ofPushMatrix();
+		ofTranslate(x, y, 0);
+		ofScale(scaleX, scaleY, 1.0);
+		ofMultMatrix(matrix);
 		ofSetHexColor(0xFFFFFF);
 		if(showOutline){
 			ofNoFill();
-			ofRect(0,0,width, height);
+			ofDrawRectangle(0,0,width, height);
 			ofFill();
 		}
 		
@@ -252,7 +249,7 @@ void imageProjection::drawMiniProjectionTool(float x, float y, bool showOutline,
 			ofDisableAlphaBlending();
 		}		
 
-	glPopMatrix();
+	ofPopMatrix();
 	
 	QUAD.draw(x, y, scaledWidth, scaledHeight);
 }
@@ -265,16 +262,16 @@ void imageProjection::drawProjectionToolHandles(float x, float y, float w, float
 	float sX = w/width;
 	float sY = h/height;
 
-	glPushMatrix();
-		glTranslatef(x, y, 0);
-		glScalef(sX, sY, 1.0);
+	ofPushMatrix();
+		ofTranslate(x, y, 0);
+		ofScale(sX, sY, 1.0);
 		ofSetHexColor(0xFFFFFF);
 		if(showOutline){
 			ofNoFill();
 			ofRect(0,0,width, height);
 			ofFill();
 		}
-	glPopMatrix();
+	ofPopMatrix();
 		
 	if(highlyVisible){
 		QUAD.draw(x, y, w, h, 255, 255, 255, 3);
@@ -311,9 +308,10 @@ void imageProjection::drawProjectionTex(float x, float y, float w, float h){
 	float sX = w/width;
 	float sY = h/height;
 	
-	glPushMatrix();
-	glTranslatef(x,y,0);
-	glScalef(sX, sY, 1);
+	ofPushMatrix();
+	ofTranslate(x,y,0);
+	ofScale(sX, sY, 1);
+	ofMultMatrix(matrix);
 
 	float dim = brightness *0.01;
 
@@ -326,7 +324,7 @@ void imageProjection::drawProjectionTex(float x, float y, float w, float h){
 		colorTexture.draw(0, 0, colorTexture.getWidth(), colorTexture.getHeight());
 	}		
 	ofDisableAlphaBlending();
-	glPopMatrix();
+	ofPopMatrix();
 }
 
 
