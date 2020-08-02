@@ -517,9 +517,29 @@ void appController::keyRelease(int key) {
 }
 
 //----------------------------------------------------
-void appController::draw() {
+void appController::drawProjector() {
+	ofBackground(0, 0, 0);
+	ofSetColor(255, 255, 255, 90);
+
+	//if we are a vector brush
+	if (brushes[brushMode]->getIsVector()) {
+		brushes[brushMode]->draw(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
+		IP.drawProjectionMask(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
+	}
+	else {
+		IP.drawProjectionTex(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
+	}
+
+	if (toggleGui)IP.drawProjectionToolHandles(0, 0, ofGetWindowWidth(), ofGetWindowHeight(), false, true);
+
+	if (webMovieLoaded) {
+		VP.draw(20, 20, ofGetWindowWidth(), ofGetWindowHeight());
+	}
+}
 
 
+//----------------------------------------------------
+void appController::drawGUI() {
 	ofSetColor(255, 255, 255);
 	LT.draw(0, 0);
 
@@ -544,48 +564,28 @@ void appController::draw() {
 
 	ofPopMatrix();
 
-
-	ofSetColor(255, 255, 255, 90);
-
-	//if we are a vector brush
 	if (brushes[brushMode]->getIsVector()) {
 		brushes[brushMode]->draw(640, 0, 320, 240);
 		IP.drawMiniProjectionTool(640, 0, true, false);
-		brushes[brushMode]->draw(1024, 0, 1024, 768);
-		IP.drawProjectionMask(1024, 0, 1024, 768);
 	}
 	else {
-		IP.drawMiniProjectionTool(640,0, true, true);
-		IP.drawProjectionTex(1024, 0, 1024, 768);
+		IP.drawMiniProjectionTool(640, 0, true, true);
 	}
-
-	drawStatusMessage();
-
-
-
-	drawGUI();
 
 	ofSetColor(150, 150, 150);
 	drawText("fps: " + ofToString(ofGetFrameRate()), 10, 740);
 
 	//make sure we have a black background
 
-	if (toggleGui)IP.drawProjectionToolHandles(1024, 0, 1024, 768, false, true);
+
+	drawStatusMessage();
+	if (ofGetKeyPressed('d')) LT.drawDebug();
+	GUI.draw();
 
 	if (webMovieLoaded) {
 		ofSetHexColor(0xFFFFFF);
 		VP.draw(20, 20, 984, 728);
-		VP.draw(1044, 20, 984, 728);
 	}
-
-	if(ofGetKeyPressed('d')) LT.drawDebug();
-	GUI.draw();
-}
-
-
-//----------------------------------------------------
-void appController::drawGUI() {
-
 }
 
 //----------------------------------------------------		

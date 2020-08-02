@@ -46,7 +46,8 @@ class appController : public baseGui{
 		void releasePoint();
 		void keyPress(int key);
 		void keyRelease(int key);
-		void draw();
+		void drawProjector();
+		void drawGUI();
 		
 	protected:
 		void setupBrushes(int w, int h);
@@ -60,9 +61,7 @@ class appController : public baseGui{
 		void trackLaser();
 		void manageMusic();
 		void updateBrushSettings(bool first);
-		void managePainting();		
-		
-		void drawGUI();		
+		void managePainting();			
 		void drawStatusMessage();
 		
 		colorManager CM;

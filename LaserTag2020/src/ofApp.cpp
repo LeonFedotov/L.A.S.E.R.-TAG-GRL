@@ -3,16 +3,12 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	
 	//set background to black
 	ofBackground(0, 0, 0);	
-	
 	//for smooth animation
 	ofSetVerticalSync(true);
-	
 	init();
 	appCtrl.setup();
-
 }
 
 //--------------------------------------------------------------
@@ -22,42 +18,35 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-	appCtrl.draw();
-	ofDrawBitmapString(ofGetFrameRate(), 10, 10);
+	appCtrl.drawGUI();
 }
 
-
-//--------------------------------------------------------------
-void ofApp::keyPressed  (int key){
-	appCtrl.keyPress(key);
+void ofApp::drawProjector(ofEventArgs& args) {
+	appCtrl.drawProjector();
 }
-
 //--------------------------------------------------------------
-void ofApp::keyReleased (int key){
-
-	appCtrl.keyRelease(key);
-}
-
-
-//--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
-	
+void ofApp::keyPressed(ofKeyEventArgs& key) {
+	appCtrl.keyPress(key.key);
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button){
-	appCtrl.dragPoint(x,y);
+void ofApp::keyReleased(ofKeyEventArgs& key) {
+	appCtrl.keyRelease(key.key);
 }
 
 //--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
-	appCtrl.selectPoint(x,y);
+void ofApp::mouseDragged(ofMouseEventArgs& mouse) {
+	appCtrl.dragPoint(mouse.x, mouse.y);
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseReleased(){
+void ofApp::mousePressed(ofMouseEventArgs& mouse) {
+	appCtrl.selectPoint(mouse.x,mouse.y);
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleased(ofMouseEventArgs& mouse) {
 	appCtrl.releasePoint();
-
 }
 
 //this is a little hack to make sure people don't
