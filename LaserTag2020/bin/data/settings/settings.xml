@@ -15,14 +15,14 @@
 		<Drips_direction>0</Drips_direction>
 	</Drip_settings>
 	<Tracking_settings>
-		<Hue_Point>1</Hue_Point>
-		<Hue_Thresh_Width>0.77551</Hue_Thresh_Width>
-		<Sat_Threshold>0</Sat_Threshold>
-		<Value_Threshold>0.397959</Value_Threshold>
-		<Min_blob_size>3</Min_blob_size>
+		<Hue_Point>0.28</Hue_Point>
+		<Hue_Thresh_Width>0.17</Hue_Thresh_Width>
+		<Sat_Threshold>0.22</Sat_Threshold>
+		<Value_Threshold>0.16</Value_Threshold>
+		<Min_blob_size>1</Min_blob_size>
 		<Advanced_quad>1</Advanced_quad>
-		<Activity_thresh>28</Activity_thresh>
-		<Jump_dist>0.147959</Jump_dist>
+		<Activity_thresh>27</Activity_thresh>
+		<Jump_dist>0.967654</Jump_dist>
 	</Tracking_settings>
 	<Clear_zone_settings>
 		<Use_clear_zone>1</Use_clear_zone>

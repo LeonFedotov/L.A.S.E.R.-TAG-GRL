@@ -3,7 +3,6 @@
 
 #include "ofMain.h"
 #include "ofxOpenCv.h"
-#include "ofxCv.h"
 #include "baseGui.h"
 #include "guiQuad.h"
 #include "laserUtils.h"
@@ -120,9 +119,6 @@ class laserTracking : public baseGui{
 		hitZone brushZone;
 		
 		int r0Min, r0Max, g0Min, g0Max, b0Min, b0Max, r1Min, r1Max, g1Min, g1Max, b1Min, b1Max;
-
-
-		ofxCv::ContourFinder contourFinder;
 };
 
 #endif

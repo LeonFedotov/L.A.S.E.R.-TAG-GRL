@@ -62,7 +62,7 @@ void appController::setup() {
 			CAM_HEIGHT = camHeight;
 		}
 	}
-	else LT.setupVideo("videos/0_lasertag-IR-trackLaser.mov");
+	else LT.setupVideo("videos/lasertag_test.mp4");
 
 	LT.setupCV(ofToDataPath("settings/quad.xml"));
 
@@ -519,8 +519,7 @@ void appController::keyRelease(int key) {
 //----------------------------------------------------
 void appController::drawProjector() {
 	ofBackground(0, 0, 0);
-	ofSetColor(255, 255, 255, 90);
-
+	ofSetColor(255, 255, 255, 255);
 	//if we are a vector brush
 	if (brushes[brushMode]->getIsVector()) {
 		brushes[brushMode]->draw(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
