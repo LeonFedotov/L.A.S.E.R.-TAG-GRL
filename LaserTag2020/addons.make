@@ -1,5 +1,5 @@
 ofxOpenCv
 ofxCv
-ofxGui
+ofxGuiExtended
 ofxNetwork
 ofxXmlSettings

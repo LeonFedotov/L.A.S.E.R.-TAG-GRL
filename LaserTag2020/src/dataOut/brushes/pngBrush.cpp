@@ -21,7 +21,7 @@ void pngBrush::setupCustom(){
 	//other vars
 	numBrushes  	= 0;
 	brushNumber		= -1;
-	numSteps		= 40;
+	numSteps		= 100;
 	brushWidth		= 18;
 	
 	//default to white
@@ -31,13 +31,11 @@ void pngBrush::setupCustom(){
 	
 	//our default drip settings
 	dripsSettings(false, 8, 0.05, 0);
-
-	//setup up our image buffer
-	pixels = new unsigned char[width * height * imageNumBytes];
-	clear();
 	
 	DRIPS.setup(width, height);
-	
+    FBO.allocate(width, height, GL_RGBA);
+    clear();
+    
 	//load brushes
 	loadbrushes(ofToDataPath("brushes/"));
 }
@@ -45,7 +43,9 @@ void pngBrush::setupCustom(){
 
 //------------------------
 void pngBrush::clear(){
-	memset(pixels, 0, width*height*imageNumBytes);
+    FBO.begin();
+    ofClear(0, 0, 0, 0);
+    FBO.end();
 	DRIPS.clear();
 }
 
@@ -80,15 +80,17 @@ void pngBrush::setBrushNumber(int _num){
 	
 	brushNumber = _num;
 				
-	IMG.loadImage(DL.getPath(brushNumber));
+	IMG.load(DL.getPath(brushNumber));
 	
 	 //no need for color
 	 //we will use the image as a mask to 
 	 //draw with and multiply it with
 	 //our drawing color.
-	IMG.setImageType(OF_IMAGE_GRAYSCALE); 
-	TMP.setImageType(OF_IMAGE_GRAYSCALE); 
+	IMG.setImageType(OF_IMAGE_COLOR_ALPHA);
+	TMP.setImageType(OF_IMAGE_COLOR_ALPHA);
 	updateTmpImage(brushWidth);
+    
+    
 
 }
 
@@ -130,6 +132,10 @@ void pngBrush::updateTmpImage(float _brushWidth){
 	int newHeight  	= tmpH*ratio;
 	
 	TMP.resize(newWidth, newHeight);
+    
+    for(int i = 0; i < newWidth*newHeight*4; i+=4){
+        TMP.getPixels()[i+3] = TMP.getPixels()[i];
+    }
 }
 
 //-----------------------------------------------------
@@ -197,9 +203,7 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
 		dx = ((float)(startX - oldX)/steps);
 		dy = ((float)(startY - oldY)/steps);
 	}
-				
-	//get the pixels of the brush
-	unsigned char * brushPix = TMP.getPixels().getData();
+            
 				
 	//if no distance is to be travelled
 	//draw only one point
@@ -208,8 +212,6 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
 	// lets draw the brushNumber many times to make a line
 	for(int i = 0; i < steps; i++){				
 							
-		// we do - TMP.width/2 because we want the brushNumber to be
-		// drawn from the center
 		if(newStroke){
 			tx = startX - TMP.getWidth()/2;
 			ty = startY - TMP.getHeight()/2;
@@ -218,76 +220,27 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
 			ty = (oldY + (int)(dy*(float)i)) - TMP.getHeight()/2;
 		}
 						
-		//this is what we use to move through the
-		//brushNumber array									
-		int tPix = 0;
-		
-		int destX = (TMP.getWidth()  + tx);
-		int destY = (TMP.getHeight() + ty);
-						
-		//lets check that we don't draw out outside the projected
-		//image
-		if(destX >= width)   destX = width  -1;
-		if(destY >= height)  destY = height -1;
-		
-		//if the brushNumber is a bit off the screen on the left side
-		//we need to figure this amount out so we only copy part
-		//of the brushNumber image 
-		int offSetCorrectionLeft = 0;	
-		if(tx < 0){
-			offSetCorrectionLeft = -tx;
-			tx = 0;
-		}
-		
-		//same here for y - we need to figure out the y offset
-		//for the cropped brush
-		if(ty < 0){
-			tPix    = -ty * TMP.getWidth();
-			ty 		= 0;
-		}
-						
-		//this is for the right hand side cropped brush 
-		int offSetCorrectionRight = ((TMP.getWidth() + tx) -  destX);
-		tPix += offSetCorrectionLeft;
-
-		//some vars we are going to need
-		//put here to optimise? 
-		float r, g, b, value, ival;
-
-		for(int y = ty; y < destY; y++){
-			for(int x = tx; x < destX; x++){
-					
-				pix = x*imageNumBytes + (y*stride);
-				
-				if(brushPix[tPix] == 0){
-					//we don't need to do anything
-					tPix++;
-					continue;
-				}						
-				//okay so here we are going to use the pixel value of the brush
-				//as a multiplier to add into the image
-				value = (float)brushPix[tPix] * ONE_OVER_255;
-				ival  = 1.0 - value;
-				
-				r 	= (float)pixels[pix  ] * ival + red   * value;
-				g 	= (float)pixels[pix+1] * ival + green * value;
-				b 	= (float)pixels[pix+2] * ival + blue  * value;
-				
-				pixels[pix  ] = (unsigned char)r;
-				pixels[pix+1] = (unsigned char)g;
-				pixels[pix+2] = (unsigned char)b;
-																												
-				tPix++;					
-			}
-			tPix += offSetCorrectionRight;
-		}
-	
+        ofSetRectMode(OF_RECTMODE_CENTER);
+        ofPushStyle();
+        ofEnableAlphaBlending();
+        ofEnableBlendMode(OF_BLENDMODE_ADD);
+        FBO.begin();
+        ofSetColor(255, 255, 255);
+        TMP.draw(tx, ty);
+        FBO.end();
+        ofDisableAlphaBlending();
+        ofPopStyle();
+        ofSetRectMode(OF_RECTMODE_CORNER);
 	}
 	
 	oldX = startX;
 	oldY = startY;
 }
 	
+ofTexture & pngBrush::getTexture(){
+    return FBO.getTexture();
+}
+
 //-----------------------------------------------------
 unsigned char * pngBrush::getImageAsPixels(){
 	return pixels;

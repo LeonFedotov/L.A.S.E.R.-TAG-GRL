@@ -76,6 +76,10 @@ void laserTracking::setupCamera(int deviceNumber, int width, int height) {
 	bCameraSetup = true;
 	noLaserCounter = 0;
 	distDifference = 0.0;
+    if(bVideoSetup){
+        VP.stop();
+        bVideoSetup = false;
+    }
 }
 
 //same as above - from/to using test movies

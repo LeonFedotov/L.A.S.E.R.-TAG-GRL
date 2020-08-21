@@ -10,8 +10,8 @@ int main( ){
 
 	settings.setSize(1920, 1080);
 	settings.resizable = true;
-	// uncomment next line to share main's OpenGL resources with gui
-	settings.shareContextWith = mainWindow;	
+	settings.shareContextWith = mainWindow;
+    
 	shared_ptr<ofAppBaseWindow> guiWindow = ofCreateWindow(settings);
 	guiWindow->setVerticalSync(false);
 

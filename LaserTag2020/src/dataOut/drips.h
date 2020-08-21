@@ -3,7 +3,6 @@
 
 #include "ofMain.h"
 
-#include "miscUtils.h"
 
 #define MAX_DRIPS 800
 

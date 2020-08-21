@@ -91,8 +91,8 @@ bool guiQuad::selectPoint(float x, float y, float offsetX, float offsetY, float 
 	float storeDist = 9999999.0;
 	
 	for(int i = 0; i < 4; i++){
-		float dx = floatAbs(px -  srcZeroToOne[i].x);
-		float dy = floatAbs(py -  srcZeroToOne[i].y);
+		float dx = abs(px -  srcZeroToOne[i].x);
+		float dy = abs(py -  srcZeroToOne[i].y);
 		
 		float dist = sqrt(dx*dx + dy*dy);
 		

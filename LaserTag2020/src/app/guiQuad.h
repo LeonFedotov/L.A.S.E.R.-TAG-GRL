@@ -17,7 +17,6 @@
 /////////////////////////
 
 #include "baseGui.h"
-#include "miscUtils.h"
 
 class guiQuad : public baseGui{
 	

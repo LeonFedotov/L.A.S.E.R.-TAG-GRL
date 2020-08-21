@@ -98,7 +98,7 @@ bool drip::setup(float x, float y, int imageW, int imageH, int _direction, float
 	}
 	
 	//recalculate the dripLength
-	dripLength = floatAbs(dst.x - pos.x) + floatAbs(dst.y - pos.y);
+	dripLength = abs(dst.x - pos.x) + abs(dst.y - pos.y);
 
 	//lets not start dripping until specifically told to do so
 	dripping	= false;
@@ -115,7 +115,7 @@ bool drip::update(){
 	if(!isDripping())return false;
 				
 	//lets figure out how far we will have travelled
-	distance += floatAbs(vel.x) + floatAbs(vel.y);
+	distance += abs(vel.x) + abs(vel.y);
 	
 	//only update pos if doing so would keep us
 	//under the dripLength - otherwise we could
@@ -129,7 +129,7 @@ bool drip::update(){
 	}else{
 		
 		//lets see if we have moved less than 1 pixel
-		float preDist = floatAbs( (pre - pos).length() );
+		float preDist = abs( (pre - pos).length() );
 		
 		//if(preDist > 1){
 			//update our previous point
@@ -141,7 +141,7 @@ bool drip::update(){
 			vel.x *= 0.987;
 			vel.y *= 0.987;
 			
-			if( floatAbs(vel.x) < 0.01 && floatAbs(vel.y) < 0.01){
+			if( abs(vel.x) < 0.01 && abs(vel.y) < 0.01){
 				stopDripping();
 				return false;
 			}
@@ -314,25 +314,25 @@ bool drips::addDrip(int x, int y){
 //there is no checking of size etc so be careful!
 //-----------------------------------
 void drips::updateDrips(unsigned char * pix){
-	if(!bSetup){
-		printf("addDrip: call setup first!!\n");		 
-		return;
-	}
-
-	for(int i = 0; i < numDrips; i++){
-		if(DRIP[i].isDripping() && DRIP[i].update() ){
-		
-			//printf("drip %i - pos is (%f %f)\n", i, DRIP[i].pos.x, DRIP[i].pos.y);
-		
-			//then we can try and update our drip
-			//into our pixels					
-			if(DRIP[i].direction == 0 || DRIP[i].direction == 2){
-				fastVerticalLine(pix, DRIP[i].pre.x, DRIP[i].pre.y, DRIP[i].pos.y,  1,  DRIP[i].r, DRIP[i].g, DRIP[i].b);    
-			}else{
-				fastHorizontalLine(pix, DRIP[i].pre.y, DRIP[i].pre.x, DRIP[i].pos.x,  1,  DRIP[i].r, DRIP[i].g, DRIP[i].b);    
-			}
-		}
-	}
+//	if(!bSetup){
+//		printf("addDrip: call setup first!!\n");		 
+//		return;
+//	}
+//
+//	for(int i = 0; i < numDrips; i++){
+//		if(DRIP[i].isDripping() && DRIP[i].update() ){
+//		
+//			//printf("drip %i - pos is (%f %f)\n", i, DRIP[i].pos.x, DRIP[i].pos.y);
+//		
+//			//then we can try and update our drip
+//			//into our pixels					
+//			if(DRIP[i].direction == 0 || DRIP[i].direction == 2){
+//				fastVerticalLine(pix, DRIP[i].pre.x, DRIP[i].pre.y, DRIP[i].pos.y,  1,  DRIP[i].r, DRIP[i].g, DRIP[i].b);    
+//			}else{
+//				fastHorizontalLine(pix, DRIP[i].pre.y, DRIP[i].pre.x, DRIP[i].pos.x,  1,  DRIP[i].r, DRIP[i].g, DRIP[i].b);    
+//			}
+//		}
+//	}
 }
 
 //-----------------------------------

@@ -30,16 +30,19 @@ void imageProjection::setup(int _width, int _height){
 	height = _height;
 	
 	//allocate our ofTextures - some are color - some are b&w
-	colorPreviewTexture.allocate(width, height, GL_RGB);
-	colorTexture.allocate(width, height, GL_RGB);
 
-	greyscalePreviewTexture.allocate(width, height, GL_LUMINANCE);
+	colorTexture.allocate(width, height, GL_RGB);
 	greyscaleTexture.allocate(width, height, GL_LUMINANCE);
-	
-//	greyscaleTexture.setPoints(0,0,640,0,640,480,0,480);			
-//	colorTexture.setPoints(0,0,640,0,640,480,0,480);				
 }
 
+void imageProjection::setColorTexture(ofTexture & tex){
+    colorTexture = tex;
+        bGreyscaleTexture = false;
+}
+void imageProjection::setGrayTexture(ofTexture & tex){
+    greyscaleTexture = tex;
+        bGreyscaleTexture = true;
+}
 
 //if we have to dim the image
 //projector is too bright close etc
@@ -67,17 +70,14 @@ void imageProjection::setProjectionColor(int r, int g, int b){
 //------------------------------------------------------
 void imageProjection::updateGreyscaleTexture(unsigned char * pixels){
 	greyscaleTexture.loadData(pixels, width, height, GL_LUMINANCE);
-	greyscalePreviewTexture.loadData(pixels, width, height, GL_LUMINANCE);
 	bGreyscaleTexture = true;	
 }
 
 //------------------------------------------------------
 void imageProjection::updateColorTexture(unsigned char * pixels){
 	colorTexture.loadData(pixels, width, height, GL_RGB);
-	colorPreviewTexture.loadData(pixels, width, height, GL_RGB);	
 	bGreyscaleTexture = false;	
 }
-
 
 
 ///////////////////////////////////////////////////////
@@ -268,7 +268,7 @@ void imageProjection::drawProjectionToolHandles(float x, float y, float w, float
 		ofSetHexColor(0xFFFFFF);
 		if(showOutline){
 			ofNoFill();
-			ofRect(0,0,width, height);
+			ofDrawRectangle(0,0,width, height);
 			ofFill();
 		}
 	ofPopMatrix();
@@ -332,8 +332,8 @@ void imageProjection::drawProjectionTex(float x, float y, float w, float h){
 //-----------------------------------------------------
 void imageProjection::drawPreviewTex(float x, float y, float w, float h){
 	ofEnableAlphaBlending();
-	if(bGreyscaleTexture)greyscalePreviewTexture.draw(x,y,w,h);
-	else colorPreviewTexture.draw(x,y,w,h);
+	if(bGreyscaleTexture)greyscaleTexture.draw(x,y,w,h);
+	else colorTexture.draw(x,y,w,h);
 	ofDisableAlphaBlending();
 }		
 
