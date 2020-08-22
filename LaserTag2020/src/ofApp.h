@@ -14,6 +14,7 @@ public:
 	void draw();
 	void drawProjector(ofEventArgs& args);
 	void init();
+    void exit();
 
 	void keyPressed(ofKeyEventArgs& key);
 	void keyReleased(ofKeyEventArgs& key);

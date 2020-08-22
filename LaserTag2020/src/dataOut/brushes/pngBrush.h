@@ -23,26 +23,27 @@ public:
     void update();
     
     unsigned char * getImageAsPixels();
-    ofTexture & getTexture();
     void drawTool(int x, int y, int w, int h);
     
-    void dripsSettings(bool doDrip, int dripFreq, float speed, int direction);
-    void setBrushColor(unsigned char r, unsigned char g, unsigned b);
+    void dripsSettings(bool doDrip, int dripFreq, float speed, int direction, int dwidth);
+    void setBrushColor(int r, int g, int b, int a);
     void setBrushWidth(int width);
+    void drawBrushColor(float x, float y, int w, int h);
+    int  loadbrushes(string brushDir);
+    void setBrushNumber(int _num);
+    
+    ofTexture & getTexture();
     
 protected:
     
-    int  loadbrushes(string brushDir);
-    void setBrushNumber(int _num);
+    
     void updateTmpImage(float _brushWidth);
     string getbrushName();
-    void drawBrushColor(float x, float y, int w, int h);
     
     
+    ofTexture texture;
     ofDirectory DL;
     drips DRIPS;
-    
-    ofFbo FBO;
     
     ofImage IMG;
     ofImage TMP;
@@ -50,7 +51,8 @@ protected:
     unsigned char * pixels;
     
     int oldX, oldY, numBrushes, imageNumBytes;
-    
+    bool drip;
+    int dripCount, dripPattern;
 };
 
 

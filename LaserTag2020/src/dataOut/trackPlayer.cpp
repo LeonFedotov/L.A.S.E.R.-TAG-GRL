@@ -22,7 +22,7 @@ bool trackPlayer::playTrack(int _whichTrack){
 	targetPitch  = 1.0;
 	currentPitch = 1.0;;
 	
-	track.loadSound(DLIST.getPath(whichTrack), true);
+	track.load(DLIST.getPath(whichTrack), true);
 	track.play();
 	
 	return true;
@@ -122,3 +122,6 @@ void trackPlayer::shiftPos(float posAdj){
 	track.setPosition(currentPos);
 }
 
+void trackPlayer::stop(){
+    track.stop();
+}

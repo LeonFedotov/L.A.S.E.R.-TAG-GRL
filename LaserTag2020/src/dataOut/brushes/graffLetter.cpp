@@ -38,7 +38,7 @@ void graffLetter::setupCustom(){
 	cvBottomLayerMask.set(0);
 
 	setBrushWidth(40);
-	dripsSettings(false, 10, 0.5, 0);
+	dripsSettings(false, 10, 0.5, 0, 16);
 	
 	//-------------------------------------------  d r i p s 
 	for (int i = 0; i < MAX_DRIP_PARTICLES; i++){

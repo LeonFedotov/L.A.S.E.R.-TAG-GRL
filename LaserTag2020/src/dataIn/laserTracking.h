@@ -81,6 +81,8 @@ class laserTracking : public baseGui{
 		guiQuad			QUAD;
 		coordWarping	CW;
 		
+        ofVec2f mouseOffset;
+    
 		ofPoint 			warpSrc[4];
 		ofPoint 			warpDst[4];
 		

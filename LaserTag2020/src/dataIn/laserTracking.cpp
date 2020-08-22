@@ -113,6 +113,7 @@ void laserTracking::setupCV(string filePath) {
 	VideoFrame.allocate(W, H);
 	WarpedFrame.allocate(W, H);
 	PresenceFrame.allocate(W, H);
+    hsvFrame.allocate(W, H);
 	cout << W << " " << H << endl;
 	//we do all our tracking at 320 240 - regardless 
 	//of camera size - larger cameras get scaled down to
@@ -536,6 +537,7 @@ void laserTracking::calcColorRange(float hue, float hueThresh, float sat, float 
 void laserTracking::draw(float x, float y) {
 	ofPushMatrix();
 	ofTranslate(x, y);
+    mouseOffset = ofVec2f(x, y);
 	//lets draw our openCV frames
 	//with a nice border around them
 	

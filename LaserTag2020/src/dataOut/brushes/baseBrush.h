@@ -86,11 +86,12 @@ public:
         setupCustom();
     }
     
-    virtual void dripsSettings(bool doDrip, int dripFreq, float speed, int direction){
+    virtual void dripsSettings(bool doDrip, int dripFreq, float speed, int direction, int width){
         dripsEnabled 	= doDrip;
         dripsFrequency 	= dripFreq;
         dripsDirection	= direction;
         dripsSpeed		= speed;
+        dripsWidth = width;
     }
     
     virtual void setName(string brushName){
@@ -101,10 +102,12 @@ public:
         description = brushDesription;
     }
     
-    virtual void setBrushColor(unsigned char r, unsigned char g, unsigned b){
+    virtual void setBrushColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a){
         red 	= r;
         green 	= g;
         blue	= b;
+        alpha   = a;
+        brushColor = ofColor(r, g, b, a);
     }
     
     virtual void setBrushBrightness(int brightness){
@@ -112,7 +115,7 @@ public:
     }
     
     virtual void setNumSteps(int steps){
-        int numSteps;
+        numSteps = steps;
     }
     
     virtual void setBrushWidth(int width){
@@ -163,8 +166,12 @@ protected:
     int		red;
     int		green;
     int		blue;
+    int     alpha;
+    
+    ofColor brushColor;
     
     float	dripsSpeed;
+    int   dripsWidth;
     
 };
 

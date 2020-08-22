@@ -7,6 +7,7 @@ void ofApp::setup(){
 	ofBackground(0, 0, 0);	
 	//for smooth animation
 	ofSetVerticalSync(true);
+    ofSetFrameRate(60);
 	init();
 	appCtrl.setup();
 }
@@ -19,6 +20,10 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 	appCtrl.drawGUI();
+}
+
+void ofApp::exit(){
+    appCtrl.exit();
 }
 
 void ofApp::drawProjector(ofEventArgs& args) {

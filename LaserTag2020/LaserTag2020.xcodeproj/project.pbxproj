@@ -323,8 +323,20 @@
 		6B3798C252402F128C4C42E6 /* ovx.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ovx.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv4/opencv2/core/ovx.hpp; sourceTree = SOURCE_ROOT; };
 		6B3CDFD1A15E92F074E7D5AE /* RunningBackground.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = RunningBackground.h; path = ../../../addons/ofxCv/libs/ofxCv/include/ofxCv/RunningBackground.h; sourceTree = SOURCE_ROOT; };
 		6B5BE4234BDC723B93110438 /* emulation.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = emulation.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/core/cuda/emulation.hpp; sourceTree = SOURCE_ROOT; };
+		6B6E2BDB24F19B150083C90F /* miscUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = miscUtils.h; sourceTree = "<group>"; };
 		6B6F94EFEBEE9A5EC6DBD668 /* features2d.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = features2d.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv4/opencv2/features2d/features2d.hpp; sourceTree = SOURCE_ROOT; };
 		6B907CFBB1B0FEDE76C41AA0 /* heap.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = heap.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/heap.h; sourceTree = SOURCE_ROOT; };
+		6BC731DB24F0494100E31CB7 /* colors.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = colors.xml; sourceTree = "<group>"; };
+		6BC731DC24F0494100E31CB7 /* tracking_settings.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = tracking_settings.xml; sourceTree = "<group>"; };
+		6BC731DD24F0494100E31CB7 /* settings.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = settings.xml; sourceTree = "<group>"; };
+		6BC731DE24F0494100E31CB7 /* music_settings.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = music_settings.xml; sourceTree = "<group>"; };
+		6BC731DF24F0494100E31CB7 /* network_settings.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = network_settings.xml; sourceTree = "<group>"; };
+		6BC731E024F0494100E31CB7 /* clear_settings.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = clear_settings.xml; sourceTree = "<group>"; };
+		6BC731E124F0494100E31CB7 /* drip_settings.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = drip_settings.xml; sourceTree = "<group>"; };
+		6BC731E224F0494100E31CB7 /* camera_settings.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = camera_settings.xml; sourceTree = "<group>"; };
+		6BC731E324F0494100E31CB7 /* quad.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = quad.xml; sourceTree = "<group>"; };
+		6BC731E424F0494100E31CB7 /* brush_settings.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = brush_settings.xml; sourceTree = "<group>"; };
+		6BC731E524F0494100E31CB7 /* quadProj.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = quadProj.xml; sourceTree = "<group>"; };
 		6CAC868C7F755D746364C503 /* interface.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = interface.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/imgproc/hal/interface.h; sourceTree = SOURCE_ROOT; };
 		6CD6207D8DD3FE4EF190C9D2 /* laserTracking.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = laserTracking.h; path = src/dataIn/laserTracking.h; sourceTree = SOURCE_ROOT; };
 		6CEC50DB3D06414010233963 /* Utilities.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Utilities.cpp; path = ../../../addons/ofxCv/libs/ofxCv/src/Utilities.cpp; sourceTree = SOURCE_ROOT; };
@@ -1048,10 +1060,10 @@
 			isa = PBXGroup;
 			children = (
 				B33FBC3981B8BBD59F3904F4 /* vectorBrush.h */,
-				8577F5C89D481118539636CD /* graffLetter.cpp */,
 				B05EB8ED6BF03EDF4A3DB0D7 /* basicVectorBrush.h */,
 				87D06303EAE95F8063B2DBFF /* pngBrush.h */,
 				C1438FCDF2A399389A448C83 /* pngBrush.cpp */,
+				8577F5C89D481118539636CD /* graffLetter.cpp */,
 				A0269FA9943B28A5C3AF4346 /* graffLetter.h */,
 				C695D76E49E70A1C86384A35 /* baseBrush.h */,
 				AAE028CE3D1E669C3A14E706 /* vectorBrush.cpp */,
@@ -1507,12 +1519,32 @@
 		6B6AD5A931E565B62CDF53FA /* utils */ = {
 			isa = PBXGroup;
 			children = (
+				6B6E2BDB24F19B150083C90F /* miscUtils.h */,
 				E60B08F112E751AA0AECEED0 /* colorManager.cpp */,
 				5DB703270B0E61B12A5FAD32 /* laserUtils.h */,
 				3FF76C118D5D77AA6892A3F5 /* colorManager.h */,
 				78D4FFA897B7A9F404344F27 /* glBlendFunc.h */,
 			);
 			name = utils;
+			sourceTree = "<group>";
+		};
+		6BC731DA24F0494100E31CB7 /* settings */ = {
+			isa = PBXGroup;
+			children = (
+				6BC731DB24F0494100E31CB7 /* colors.xml */,
+				6BC731DC24F0494100E31CB7 /* tracking_settings.xml */,
+				6BC731DD24F0494100E31CB7 /* settings.xml */,
+				6BC731DE24F0494100E31CB7 /* music_settings.xml */,
+				6BC731DF24F0494100E31CB7 /* network_settings.xml */,
+				6BC731E024F0494100E31CB7 /* clear_settings.xml */,
+				6BC731E124F0494100E31CB7 /* drip_settings.xml */,
+				6BC731E224F0494100E31CB7 /* camera_settings.xml */,
+				6BC731E324F0494100E31CB7 /* quad.xml */,
+				6BC731E424F0494100E31CB7 /* brush_settings.xml */,
+				6BC731E524F0494100E31CB7 /* quadProj.xml */,
+			);
+			name = settings;
+			path = bin/data/settings;
 			sourceTree = "<group>";
 		};
 		6E54289412D2D94F45A05113 /* libs */ = {
@@ -2429,6 +2461,7 @@
 			children = (
 				E4B6FCAD0C3E899E008CF71C /* openFrameworks-Info.plist */,
 				E4EB6923138AFD0F00A09F29 /* Project.xcconfig */,
+				6BC731DA24F0494100E31CB7 /* settings */,
 				E4B69E1C0A3A1BDC003C02F2 /* src */,
 				E42962AA2163EDD300A6A9E2 /* openFrameworks */,
 				BB4B014C10F69532006C3DED /* addons */,

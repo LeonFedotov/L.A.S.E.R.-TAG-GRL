@@ -39,6 +39,7 @@ public:
     appController();
     void setup();
     void mainLoop();
+    void exit();
     void selectPoint(float x, float y);
     void dragPoint(float x, float y);
     void releasePoint();
@@ -48,6 +49,7 @@ public:
     void drawGUI();
     void setupCamera();
     void setupVideo();
+    void positionGui();
 protected:
     void setupBrushes(int w, int h);
     void loadSettings();
@@ -72,15 +74,15 @@ protected:
     baseBrush * brushes[NUM_BRUSHES];
     
     //other stuff
-    laserTracking LT;
-    laserSending  LS;
-    imageProjection IP;
-    trackPlayer TP;
+    laserTracking laserTracking;
+    laserSending  laserSending;
+    imageProjection imageProjection;
+    trackPlayer trackPlayer;
     
     bool toggleGui, full, singleScreenMode, callibration, bInverted;
     int camWidth, camHeight, keyTimer;
-    int brushMode;
     
+    ofImage twentyTwentyImg;
     ofImage settingsImg;
     ofImage noticeImg;
     
@@ -100,6 +102,7 @@ protected:
     ofParameter<int> DRIPS_FREQ;
     ofParameter<float> DRIPS_SPEED;
     ofParameter<int> DRIP_DIRECTION;
+    ofParameter<float> DRIP_WIDTH;
     
     ofxGuiPanel* tracking_panel;
     ofParameterGroup TRACKING_SETTINGS;
@@ -143,6 +146,9 @@ protected:
     ofParameter<int> CAM_ID;
     ofParameter<int> CAM_WIDTH;
     ofParameter<int> CAM_HEIGHT;
+    
+    bool bSetupCamera;
+    bool bSetupVideo;
     
     void onBrushModeChange(int & i);
     void onEnableNetwork(bool & b);
