@@ -102,12 +102,15 @@ public:
         description = brushDesription;
     }
     
-    virtual void setBrushColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a){
+    virtual void setBrushColor(int r, int g, int b){
         red 	= r;
         green 	= g;
         blue	= b;
-        alpha   = a;
-        brushColor = ofColor(r, g, b, a);
+        brushColor = ofColor(r, g, b);
+    }
+    
+    virtual void drawDebug(){
+        
     }
     
     virtual void setBrushBrightness(int brightness){

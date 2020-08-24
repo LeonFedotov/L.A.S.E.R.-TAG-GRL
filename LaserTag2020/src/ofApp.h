@@ -10,6 +10,7 @@ class ofApp : public ofBaseApp {
 public:
 
 	void setup();
+    void setupProjector();
 	void update();
 	void draw();
 	void drawProjector(ofEventArgs& args);

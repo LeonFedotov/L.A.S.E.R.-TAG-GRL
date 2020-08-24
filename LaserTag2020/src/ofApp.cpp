@@ -12,6 +12,12 @@ void ofApp::setup(){
 	appCtrl.setup();
 }
 
+void ofApp::setupProjector(){
+    ofBackground(0, 0, 0);
+    ofSetVerticalSync(true);
+    ofSetFrameRate(60);
+}
+
 //--------------------------------------------------------------
 void ofApp::update(){
 	appCtrl.mainLoop();

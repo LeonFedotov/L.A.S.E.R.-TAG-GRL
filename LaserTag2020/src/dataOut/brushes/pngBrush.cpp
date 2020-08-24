@@ -144,11 +144,12 @@ void pngBrush::updateTmpImage(float _brushWidth){
 }
 
 //-----------------------------------------------------
-void pngBrush::setBrushColor(int r, int g, int b, int a){
-    red        = r;
+void pngBrush::setBrushColor(int r, int g, int b){
+    red      = r;
     green    = g;
     blue     = b;
-            
+    alpha = 255;
+    cout<<"setBrushColor"<<endl;
     DRIPS.setColor(r, g, b);
 }
 

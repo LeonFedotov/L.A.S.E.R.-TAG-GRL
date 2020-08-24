@@ -3,11 +3,6 @@
 
 #include "ofMain.h"
 
-//we actually project at 1024 by 768
-//but we stretch our texture up from 640 by 480
-#define PROJECTION_W 1920
-#define PROJECTION_H 1080
-
 //utils for fake horz span 
 //on win32
 #include "ofxGuiExtended.h"
@@ -20,7 +15,7 @@
 #include "colorManager.h"
 
 //our brushes
-#define NUM_BRUSHES 3
+#define NUM_BRUSHES 4
 
 #include "baseBrush.h"  	//our base brush class - you must inhereit this to add your own
 #include "basicVectorBrush.h"
@@ -52,6 +47,7 @@ public:
     void positionGui();
 protected:
     void setupBrushes(int w, int h);
+    void setupListeners();
     void loadSettings();
     void saveSettings();
     void reloadSettings();
@@ -146,6 +142,8 @@ protected:
     ofParameter<int> CAM_ID;
     ofParameter<int> CAM_WIDTH;
     ofParameter<int> CAM_HEIGHT;
+    ofParameter<int> PROJECTION_W;
+    ofParameter<int> PROJECTION_H;
     
     bool bSetupCamera;
     bool bSetupVideo;

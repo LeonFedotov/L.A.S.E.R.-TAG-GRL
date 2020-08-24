@@ -22,12 +22,14 @@ void appController::setup() {
     
     ofSetWindowTitle("L.A.S.E.R.TAG 2020");
     
+    loadSettings();
+    
     ////// BRUSHES and PROJECTION ///
     imageProjection.setup(PROJECTION_W, PROJECTION_H);
     setupBrushes(PROJECTION_W, PROJECTION_H);
-    loadSettings();
-    CM.loadColorSettings(ofToDataPath("settings/colors.xml"));
     
+    CM.loadColorSettings(ofToDataPath("settings/colors.xml"));
+
     ////// XML SETTINGS ////
     imageProjection.loadSettings(ofToDataPath("settings/quadProj.xml"));
     
@@ -35,9 +37,8 @@ void appController::setup() {
     settingsImg.load("sys/settings.png");
     noticeImg.load("sys/criticalDontEditOrDelete.png");
     twentyTwentyImg.load("sys/2020.png");
-    //	useTrueTypeFont("fonts/courbd.ttf", 10);
+//    useTrueTypeFont("fonts/courbd.ttf", 10);
     laserTracking.useTrueTypeFont("fonts/courbd.ttf", 10);
-    //GUI.setUseTTF("fonts/courbd.ttf");
     
     //////// NETWORK SETUP ///
     setupNetwork();
@@ -51,11 +52,13 @@ void appController::setup() {
     updateBrushSettings(true);
     
     //see if there is a video from GRL to display.
-    webMovieLoaded = VP.load("http://graffitiresearchlab.com/lasertag2000/helloFromGRL.php?" + ofToString(ofRandom(10000, 50000)));
+    webMovieLoaded = VP.load("");
     if (webMovieLoaded)VP.play();
     
     //////// MUSIC PLAYER ////
     trackPlayer.loadTracks(ofToDataPath("tunes/"));
+    
+    setupListeners();
 }
 
 void appController::setupCamera(){
@@ -78,7 +81,7 @@ void appController::setupCamera(){
 }
 
 void appController::setupVideo(){
-    laserTracking.setupVideo("videos/lasertag_test.mp4");
+    laserTracking.setupVideo("videos/lasertag-IR-trackLaser.mp4");
     laserTracking.setupCV(ofToDataPath("settings/quad.xml"));
 }
 
@@ -88,6 +91,7 @@ void appController::setupBrushes(int w, int h) {
     brushes[0] = new pngBrush();
     brushes[1] = new vectorBrush();
     brushes[2] = new gestureBrush();
+    brushes[3] = new graffLetter();
     
     for (int i = 0; i < NUM_BRUSHES; i++) {
         brushes[i]->setup(w, h);
@@ -107,16 +111,11 @@ void appController::onEnableNetwork(bool& b) {
 void appController::loadSettings() {
     
     BRUSH_SETTINGS.setName("Brush Settings");
-    BRUSH_SETTINGS.add(BRUSH_MODE.set("Brush mode", 0, 0, NUM_BRUSHES));
-    BRUSH_MODE.addListener(this, &appController::onBrushModeChange);
+    BRUSH_SETTINGS.add(BRUSH_MODE.set("Brush mode", 0, 0, NUM_BRUSHES-1));
     BRUSH_SETTINGS.add(BRUSH_WIDTH.set("Brush width", 4, 2, 128));
-    BRUSH_WIDTH.addListener(this, &appController::onBrushModeChange);
     BRUSH_SETTINGS.add(BRUSH_NO.set("Brush image/style", 0, 0, 25));
-    BRUSH_NO.addListener(this, &appController::onBrushModeChange);
     BRUSH_SETTINGS.add(BRUSH_COLOR.set("Brush color", 0, 0, 8));
-    BRUSH_COLOR.addListener(this, &appController::onBrushModeChange);
     BRUSH_SETTINGS.add(LINE_RES.set("Line resolution", 40, 1, 200));
-    LINE_RES.addListener(this, &appController::onBrushModeChange);
     BRUSH_SETTINGS.add(PROJ_BRIGHTNESS.set("Proj Brightness", 100, 0, 100));
     
     brush_panel = GUI.addPanel(BRUSH_SETTINGS);
@@ -150,7 +149,7 @@ void appController::loadSettings() {
     
     NETWORK_SETTINGS.setName("Network settinSgs");
     NETWORK_SETTINGS.add(NETWORK_SEND.set("Enable Network", false));
-    NETWORK_SEND.addListener(this, &appController::onEnableNetwork);
+ 
     NETWORK_SETTINGS.add(SEND_DATA.set("Send data", false));
     NETWORK_SETTINGS.add(UDP_OR_TCP.set("UDP(0) / TCP(", true));
     NETWORK_SETTINGS.add(IP_PT1.set("ip: val.xxx.xxx.xxx", 127, 0, 255));
@@ -162,18 +161,20 @@ void appController::loadSettings() {
     
     MUSIC_SETTINGS.setName("Music player settings");
     MUSIC_SETTINGS.add(MUSIC.set("Play music", true));
-    MUSIC.addListener(this, &appController::onMusicChange);
+   
     MUSIC_SETTINGS.add(TRACK.set("Which track", 0, 0, 999));
-    TRACK.addListener(this, &appController::onTrackChange);
+
     MUSIC_SETTINGS.add(VOL.set("Volume", 80, 0, 100));
     music_panel = GUI.addPanel(MUSIC_SETTINGS);
     
     CAMERA_SETTINGS.setName("Camera settings");
     CAMERA_SETTINGS.add(USE_CAMERA.set("Use camera", false));
-    USE_CAMERA.addListener(this, &appController::onCameraChange);
+  
     CAMERA_SETTINGS.add(CAM_ID.set("Camera", 0, 0, 5));
     CAMERA_SETTINGS.add(CAM_WIDTH.set("Camera Width", 320, 0, 640));
     CAMERA_SETTINGS.add(CAM_HEIGHT.set("Camera Height", 240, 0, 480));
+    CAMERA_SETTINGS.add(PROJECTION_W.set("Porjection Width", 1280, 640, 1920));
+    CAMERA_SETTINGS.add(PROJECTION_H.set("Porjection Height", 720, 480, 1080));
     camera_panel = GUI.addPanel(CAMERA_SETTINGS);
     
     brush_panel->loadFromFile(ofToDataPath("settings/brush_settings.xml"));
@@ -184,8 +185,19 @@ void appController::loadSettings() {
     music_panel->loadFromFile(ofToDataPath("settings/music_settings.xml"));
     camera_panel->loadFromFile(ofToDataPath("settings/camera_settings.xml"));
     
-  
     positionGui();
+}
+
+void appController::setupListeners(){
+    BRUSH_MODE.addListener(this, &appController::onBrushModeChange);
+    BRUSH_WIDTH.addListener(this, &appController::onBrushModeChange);
+    BRUSH_NO.addListener(this, &appController::onBrushModeChange);
+    BRUSH_COLOR.addListener(this, &appController::onBrushModeChange);
+    LINE_RES.addListener(this, &appController::onBrushModeChange);
+    USE_CAMERA.addListener(this, &appController::onCameraChange);
+    TRACK.addListener(this, &appController::onTrackChange);
+    MUSIC.addListener(this, &appController::onMusicChange);
+    NETWORK_SEND.addListener(this, &appController::onEnableNetwork);
 }
 
 void appController::positionGui(){
@@ -392,7 +404,7 @@ void appController::updateBrushSettings(bool first) {
         brushes[i]->dripsSettings(DRIPS, DRIPS_FREQ, DRIPS_SPEED, DRIP_DIRECTION, DRIP_WIDTH);
         brushes[i]->setBrushWidth(BRUSH_WIDTH);
         if (i == BRUSH_MODE) brushes[i]->setBrushNumber(BRUSH_NO);
-        brushes[i]->setBrushColor(rgb[0], rgb[1], rgb[2], 255);
+        brushes[i]->setBrushColor(rgb[0], rgb[1], rgb[2]);
         brushes[i]->setNumSteps(LINE_RES);
         brushes[i]->setBrushBrightness(PROJ_BRIGHTNESS);
     }
@@ -611,11 +623,11 @@ void appController::drawGUI() {
     ofPopMatrix();
     
     if (brushes[BRUSH_MODE]->getIsVector()) {
-        brushes[BRUSH_MODE]->draw(noticeImg.getWidth(), 250, 640, 480);
-        imageProjection.drawMiniProjectionTool(noticeImg.getWidth(), 250, true, false);
+        brushes[BRUSH_MODE]->draw(noticeImg.getWidth(), 300, 640, 480);
+        imageProjection.drawMiniProjectionTool(noticeImg.getWidth(), 300, true, false);
     }
     else {
-        imageProjection.drawMiniProjectionTool(noticeImg.getWidth(), 250, true, true);
+        imageProjection.drawMiniProjectionTool(noticeImg.getWidth(), 300, true, true);
     }
 
     

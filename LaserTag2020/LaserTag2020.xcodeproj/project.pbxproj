@@ -2497,10 +2497,10 @@
 			isa = PBXGroup;
 			children = (
 				30A541EDE40B67604CDEA7FA /* laserTracking.cpp */,
+				6CD6207D8DD3FE4EF190C9D2 /* laserTracking.h */,
 				B7438FB0EA44C06C5FA212D9 /* coordWarping.h */,
 				6A0298FA4C18A70C86DAEC72 /* coordWarping.cpp */,
 				F21D6F1E70DB15B4ADC93176 /* hitZone.h */,
-				6CD6207D8DD3FE4EF190C9D2 /* laserTracking.h */,
 				F541699C78C6AAE931AFDDD0 /* hitZone.cpp */,
 			);
 			name = dataIn;

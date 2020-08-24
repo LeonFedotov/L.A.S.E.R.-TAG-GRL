@@ -5,10 +5,10 @@
 int main( ){
 	ofGLFWWindowSettings settings;
 	settings.setSize(1280, 800);
-	settings.resizable = false;
+	settings.resizable = true;
 	shared_ptr<ofAppBaseWindow> mainWindow = ofCreateWindow(settings);
 
-	settings.setSize(1920, 1080);
+	settings.setSize(1280, 720);
 	settings.resizable = true;
 	settings.shareContextWith = mainWindow;
     
@@ -16,7 +16,7 @@ int main( ){
 	guiWindow->setVerticalSync(false);
 
 	shared_ptr<ofApp> mainApp(new ofApp);
-    
+    mainApp->setupProjector();
 	ofAddListener(guiWindow->events().draw, mainApp.get(), &ofApp::drawProjector);
 	ofAddListener(guiWindow->events().keyPressed, mainApp.get(), &ofApp::keyPressed);
 	ofAddListener(guiWindow->events().keyReleased, mainApp.get(), &ofApp::keyReleased);

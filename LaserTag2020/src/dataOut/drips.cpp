@@ -16,7 +16,7 @@ void drip::reset(){
     r            = 255;
     g            = 255;
     b            = 255;
-    a           = 255;
+    a            = 255;
     
     vel.set(0,0);
     pos.set(0,0);

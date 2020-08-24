@@ -386,6 +386,11 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 			laserX = tmpX;
 			laserY = tmpY;
 			noLaserCounter = 0;
+            
+//            stroke.addVertex(laserX, laserY);
+//            ofPoint p = stroke.getVertices()[stroke.getIndexAtPercent(0.99)];
+//            laserX = p.x;
+//            laserY = p.y;
 
 		}
 		else {
@@ -415,6 +420,7 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 			distY = 0;
 			smoothVel.x = 0;
 			smoothVel.y = 0;
+            stroke.clear();
 
 		}
 	}

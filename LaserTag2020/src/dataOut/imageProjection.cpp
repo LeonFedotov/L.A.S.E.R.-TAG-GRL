@@ -112,7 +112,7 @@ void imageProjection::loadSettings(string filePath){
     QUAD.setQuadPoints(warpSrc);
     QUAD.readFromFile(filePath);
     
-    setToolDimensions(640, 480);
+    setToolDimensions(640, 360);
     
     applyQuad();
 }

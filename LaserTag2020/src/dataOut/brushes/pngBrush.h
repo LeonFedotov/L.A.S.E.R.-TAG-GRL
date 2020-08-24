@@ -26,7 +26,7 @@ public:
     void drawTool(int x, int y, int w, int h);
     
     void dripsSettings(bool doDrip, int dripFreq, float speed, int direction, int dwidth);
-    void setBrushColor(int r, int g, int b, int a);
+    void setBrushColor(int r, int g, int b);
     void setBrushWidth(int width);
     void drawBrushColor(float x, float y, int w, int h);
     int  loadbrushes(string brushDir);

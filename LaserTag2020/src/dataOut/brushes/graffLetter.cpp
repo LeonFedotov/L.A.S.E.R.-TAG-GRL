@@ -27,7 +27,7 @@ void graffLetter::setupCustom(){
 	cvImgBottom.allocate(width,height);
 	cvImgBottom.set(0);
 	cvImgTop.allocate(width,height);
-	cvImgTop.set(0);
+    cvImgTop.set(0);
 	
 	cvImgMix.allocate(width,height);
 	cvImgMix.set(0);
@@ -40,6 +40,8 @@ void graffLetter::setupCustom(){
 	setBrushWidth(40);
 	dripsSettings(false, 10, 0.5, 0, 16);
 	
+    texture.allocate(width, height, GL_LUMINANCE);
+    
 	//-------------------------------------------  d r i p s 
 	for (int i = 0; i < MAX_DRIP_PARTICLES; i++){
 		particles[i].bOn = false;
@@ -47,6 +49,10 @@ void graffLetter::setupCustom(){
 	nDrip = 0;
 	//-------------------------------------------	
 	
+}
+
+ofTexture & graffLetter::getTexture(){
+    return texture;
 }
 
 //----------------------------------------------
@@ -69,7 +75,7 @@ void graffLetter::setBrushWidth(int width){
 
 //----------------------------------------------
 void graffLetter::setupBrush(ofxCvGrayscaleImage &brush, int width){
-	brush.allocate(width,width);
+    brush.allocate(width, width);
 	unsigned char * temp = new unsigned char[width*width];
 	float midPt 	= (float)width/2.0f;
 	float radius 	= (float)width/2.0f;
@@ -142,9 +148,11 @@ void graffLetter::update(){
 	cvImgMix = cvImgTop;
     // toDo
 	composite(cvImgMix, cvImgBottom, cvBottomLayerMask);
+    
+    texture.loadData(cvImgMix.getPixels().getData(), width, height, GL_LUMINANCE);
 }
 
-void graffLetter::composite(ofxCvGrayscaleImage src, ofxCvGrayscaleImage mom, ofxCvGrayscaleImage momsAlpha) {
+void graffLetter::composite(ofxCvGrayscaleImage & src, ofxCvGrayscaleImage & mom, ofxCvGrayscaleImage & momsAlpha) {
 	// for now just mode ATOP...
 	// but we should add, over, in etc...
 	// http://www.gamedev.net/reference/articles/article320.asp
@@ -152,8 +160,8 @@ void graffLetter::composite(ofxCvGrayscaleImage src, ofxCvGrayscaleImage mom, of
 	if (mom.width == width && mom.height == height) {
 		if (momsAlpha.width == width && momsAlpha.height == height) {
 			int pos;
-			register unsigned char alphaVal;
-			register unsigned char  val;
+            unsigned char alphaVal;
+            unsigned char  val;
 			unsigned char* momData = (unsigned char*)mom.getCvImage()->imageData;
 			unsigned char* momAlphaData = (unsigned char*)momsAlpha.getCvImage()->imageData;
 			unsigned char* meData = (unsigned char*)src.getCvImage()->imageData;
@@ -355,4 +363,3 @@ void graffLetter::addDrip(float x1, float y1, float x2, float y2){
 	}
 	
 }
-
