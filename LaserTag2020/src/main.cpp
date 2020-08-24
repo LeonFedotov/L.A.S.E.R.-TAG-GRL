@@ -5,7 +5,7 @@
 int main( ){
 	ofGLFWWindowSettings settings;
 	settings.setSize(1280, 800);
-	settings.resizable = true;
+	settings.resizable = false;
 	shared_ptr<ofAppBaseWindow> mainWindow = ofCreateWindow(settings);
 
 	settings.setSize(1280, 720);
@@ -18,11 +18,11 @@ int main( ){
 	shared_ptr<ofApp> mainApp(new ofApp);
     mainApp->setupProjector();
 	ofAddListener(guiWindow->events().draw, mainApp.get(), &ofApp::drawProjector);
-	ofAddListener(guiWindow->events().keyPressed, mainApp.get(), &ofApp::keyPressed);
+	ofAddListener(guiWindow->events().keyPressed, mainApp.get(), &ofApp::keyPressedProjector);
 	ofAddListener(guiWindow->events().keyReleased, mainApp.get(), &ofApp::keyReleased);
-	ofAddListener(guiWindow->events().mouseDragged, mainApp.get(), &ofApp::mouseDragged);
-	ofAddListener(guiWindow->events().mousePressed, mainApp.get(), &ofApp::mousePressed);
-	ofAddListener(guiWindow->events().mouseReleased, mainApp.get(), &ofApp::mouseReleased);
+	ofAddListener(guiWindow->events().mouseDragged, mainApp.get(), &ofApp::mouseDraggedProjector);
+	ofAddListener(guiWindow->events().mousePressed, mainApp.get(), &ofApp::mousePressedProjector);
+	ofAddListener(guiWindow->events().mouseReleased, mainApp.get(), &ofApp::mouseReleasedProjector);
 
 	ofRunApp(mainWindow, mainApp);
 	ofRunMainLoop();

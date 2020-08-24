@@ -60,6 +60,26 @@ void ofApp::mouseReleased(ofMouseEventArgs& mouse) {
 	appCtrl.releasePoint();
 }
 
+//--------------------------------------------------------------
+void ofApp::keyPressedProjector(ofKeyEventArgs& key) {
+    appCtrl.keyPressProjector(key.key);
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseDraggedProjector(ofMouseEventArgs& mouse) {
+    appCtrl.dragPointProjector(mouse.x, mouse.y, ofGetWindowWidth(), ofGetWindowHeight());
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressedProjector(ofMouseEventArgs& mouse) {
+    appCtrl.selectPointProjector(mouse.x, mouse.y, ofGetWindowWidth(), ofGetWindowHeight());
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleasedProjector(ofMouseEventArgs& mouse) {
+    appCtrl.releasePoint();
+}
+
 //this is a little hack to make sure people don't
 //remove our disclaimer.
 void ofApp::init(){

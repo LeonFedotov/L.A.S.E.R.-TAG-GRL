@@ -24,8 +24,11 @@ public:
 	void mousePressed(ofMouseEventArgs& mouse);
 	void mouseReleased(ofMouseEventArgs& mouse);
 
-
-
+    void keyPressedProjector(ofKeyEventArgs& key);
+    void mouseDraggedProjector(ofMouseEventArgs& mouse);
+    void mousePressedProjector(ofMouseEventArgs& mouse);
+    void mouseReleasedProjector(ofMouseEventArgs& mouse);
+    
 	float 	counter;
 	float	spin;
 	float	spinPct;

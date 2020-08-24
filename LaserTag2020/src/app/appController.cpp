@@ -151,12 +151,11 @@ void appController::loadSettings() {
     NETWORK_SETTINGS.add(NETWORK_SEND.set("Enable Network", false));
  
     NETWORK_SETTINGS.add(SEND_DATA.set("Send data", false));
-    NETWORK_SETTINGS.add(UDP_OR_TCP.set("UDP(0) / TCP(", true));
-    NETWORK_SETTINGS.add(IP_PT1.set("ip: val.xxx.xxx.xxx", 127, 0, 255));
-    NETWORK_SETTINGS.add(IP_PT2.set("ip: xxx.val.xxx.xxx", 0, 0, 255));
-    NETWORK_SETTINGS.add(IP_PT3.set("ip: xxx.xxx.val.xxx", 0, 0, 255));
-    NETWORK_SETTINGS.add(IP_PT4.set("ip: xxx.xxx.xxx.val", 1, 0, 255));
-    NETWORK_SETTINGS.add(PORT.set("port:", 5544, 0, 65000));
+    NETWORK_SETTINGS.add(IP_PT1.set("ip: val.xxx.xxx.xxx", 192, 0, 255));
+    NETWORK_SETTINGS.add(IP_PT2.set("ip: xxx.val.xxx.xxx", 168, 0, 255));
+    NETWORK_SETTINGS.add(IP_PT3.set("ip: xxx.xxx.val.xxx", 1, 0, 255));
+    NETWORK_SETTINGS.add(IP_PT4.set("ip: xxx.xxx.xxx.val", 255, 0, 255));
+    NETWORK_SETTINGS.add(PORT.set("port", 5544, 0, 65000));
     network_panel = GUI.addPanel(NETWORK_SETTINGS);
     
     MUSIC_SETTINGS.setName("Music player settings");
@@ -283,17 +282,7 @@ void appController::setupNetwork() {
         ipStr += ofToString(IP_PT3) + ".";
         ipStr += ofToString(IP_PT4);
         
-        int port = PORT;
-        
-        if (UDP_OR_TCP) {
-            string msg = "status: tcp server listening on port: " + ofToString(port);
-            if (laserSending.setupTCPServer(port)) 	setCommonText(msg);
-        }
-        else {
-            string msg = "status: udp sending to: " + ipStr;
-            msg += "  port: " + ofToString(port);
-            if (laserSending.setupUDP(ipStr, port)) setCommonText(msg);
-        }
+        laserSending.setup(ipStr, PORT.get());
     }
     else {
         laserSending.close();
@@ -303,16 +292,8 @@ void appController::setupNetwork() {
 
 //----------------------------------------------------
 void appController::handleNetworkSending() {
-    //if our network is setup
-    //then lets send data
     if (laserSending.isSetup()) {
-        laserSending.sendData(laserTracking.getLaserPointString());
-        if (laserSending.isTCPSetup()) {
-            if (laserSending.checkNewTCPClient()) {
-                string msg = "status: tcp client connected on: " + laserSending.getLatestTCPClientIP();
-                setCommonText(msg);
-            }
-        }
+        laserSending.sendData(laserTracking.laserX, laserTracking.laserY, laserTracking.isStrokeNew());
     }
 }
 
@@ -450,16 +431,16 @@ void appController::managePainting() {
     
     setCommonText("brush: " + brushes[BRUSH_MODE]->getName() + " - " + brushes[BRUSH_MODE]->getDescription());
     
-    //if we are a bitmap brush
-    if (brushes[BRUSH_MODE]->getIsVector() == false) {
-        //lets update our texture!!
-        if (brushes[BRUSH_MODE]->getIsColor()) {
-            imageProjection.setColorTexture(brushes[BRUSH_MODE]->getTexture());
-        }
-        else {
-            imageProjection.setGrayTexture(brushes[BRUSH_MODE]->getTexture());
-        }
+    
+    
+
+    if (brushes[BRUSH_MODE]->getIsColor()) {
+        imageProjection.setColorTexture(brushes[BRUSH_MODE]->getTexture());
     }
+    else {
+        imageProjection.setGrayTexture(brushes[BRUSH_MODE]->getTexture());
+    }
+    
     
     
 }
@@ -503,29 +484,23 @@ void appController::reloadSettings() {
 
 //----------------------------------------------------
 void appController::selectPoint(float x, float y) {
-    
-
     laserTracking.QUAD.selectPoint(x, y, noticeImg.getWidth(), 10, 320, 240, 60);
-    
-    //only try and select the mini quad
-    //if the large quad is not selected
-    if (imageProjection.selectQuad(x, y, 1024, 0, 1024, 768, 60) != 1) {
-        imageProjection.selectMiniQuad(x, y, 30);
-    }
-    
+    imageProjection.selectMiniQuad(x, y, 30);
+    imageProjection.updateMiniQuad(x, y);
+}
+
+void appController::selectPointProjector(float x, float y, float width, float height){
+    imageProjection.selectQuad(x, y, 0, 0, width, height, 60);
+}
+
+void appController::dragPoint(float x, float y) {
+   laserTracking.QUAD.updatePoint(x, y, noticeImg.getWidth(), 10, 320, 240);
+   imageProjection.updateMiniQuad(x, y);
 }
 
 //----------------------------------------------------
-void appController::dragPoint(float x, float y) {
-    
-
-    laserTracking.QUAD.updatePoint(x, y, noticeImg.getWidth(), 10, 320, 240);
-    
-    //only try and update the mini quad
-    //if the large quad is not selected
-    if (!imageProjection.updateQuad(x, y, 1024, 0, 1024, 768)) {
-        imageProjection.updateMiniQuad(x, y);
-    }
+void appController::dragPointProjector(float x, float y, float width, float height) {
+    imageProjection.updateQuad(x, y, 0, 0, width, height);
 }
 
 //----------------------------------------------------
@@ -537,10 +512,7 @@ void appController::releasePoint() {
 //----------------------------------------------------
 void appController::keyPress(int key) {
     
-    if (key == 'f') {
-        ofToggleFullscreen();
-    }
-    else if (key == 's') {
+    if (key == 's') {
         saveSettings();
     }
     else if (key == 'r') {
@@ -560,6 +532,16 @@ void appController::keyPress(int key) {
 }
 
 //----------------------------------------------------
+void appController::keyPressProjector(int key) {
+    if (key == 'f') {
+        ofToggleFullscreen();
+    }
+    else if (key == ' ') {
+        toggleGui = !toggleGui;
+    }
+}
+
+//----------------------------------------------------
 void appController::keyRelease(int key) {
     
 }
@@ -567,21 +549,21 @@ void appController::keyRelease(int key) {
 //----------------------------------------------------
 void appController::drawProjector() {
     ofBackground(0, 0, 0);
+    ofPushStyle();
     ofSetColor(255, 255, 255, 255);
-    //if we are a vector brush
-    if (brushes[BRUSH_MODE]->getIsVector()) {
-        brushes[BRUSH_MODE]->draw(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
-        imageProjection.drawProjectionMask(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
-    }
-    else {
-        imageProjection.drawProjectionTex(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
-    }
     
-    if (toggleGui)imageProjection.drawProjectionToolHandles(0, 0, ofGetWindowWidth(), ofGetWindowHeight(), false, true);
+    //if we are a vector brush
+    
+    imageProjection.drawProjectionTex(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
+    
     
     if (webMovieLoaded) {
-        VP.draw(20, 20, ofGetWindowWidth(), ofGetWindowHeight());
+        VP.draw(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
     }
+    ofPopMatrix();
+    ofPopStyle();
+    
+    if (toggleGui)imageProjection.drawProjectionToolHandles(0, 0, ofGetWindowWidth(), ofGetWindowHeight(), false, true);
 }
 
 
@@ -622,13 +604,11 @@ void appController::drawGUI() {
     }
     ofPopMatrix();
     
-    if (brushes[BRUSH_MODE]->getIsVector()) {
-        brushes[BRUSH_MODE]->draw(noticeImg.getWidth(), 300, 640, 480);
-        imageProjection.drawMiniProjectionTool(noticeImg.getWidth(), 300, true, false);
-    }
-    else {
-        imageProjection.drawMiniProjectionTool(noticeImg.getWidth(), 300, true, true);
-    }
+ 
+    
+
+    imageProjection.drawMiniProjectionTool(noticeImg.getWidth(), 300, true, true);
+    
 
     
     //make sure we have a black background

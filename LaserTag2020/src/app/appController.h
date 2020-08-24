@@ -36,9 +36,12 @@ public:
     void mainLoop();
     void exit();
     void selectPoint(float x, float y);
+    void selectPointProjector(float x, float y, float width, float height);
     void dragPoint(float x, float y);
+    void dragPointProjector(float x, float y, float width, float height);
     void releasePoint();
     void keyPress(int key);
+    void keyPressProjector(int key);
     void keyRelease(int key);
     void drawProjector();
     void drawGUI();

@@ -2,10 +2,10 @@
 
 //--------------------------
 void pngBrush::setupCustom(){
-
+    
     //we are a raster brush
     isVector = false;
-
+    
     //we are color
     isColor             = true;
     imageNumBytes     = 4;
@@ -31,13 +31,13 @@ void pngBrush::setupCustom(){
     
     //our default drip settings
     dripsSettings(false, 8, 0.05, 0, 2);
-
+    
     //setup up our image buffer
     pixels = new unsigned char[width * height * imageNumBytes];
     clear();
     
     DRIPS.setup(width, height);
-
+    
     drip = false;
     dripCount = 0;
     dripPattern = 10;
@@ -64,7 +64,7 @@ int pngBrush::loadbrushes(string brushDir){
     
     DL.allowExt("png");
     numBrushes = DL.listDir(brushDir);
-                
+    
     //set a default brush
     if(numBrushes > 0){
         brushNumber = 0;
@@ -77,33 +77,33 @@ int pngBrush::loadbrushes(string brushDir){
 
 //-----------------------------------------------------
 void pngBrush::setBrushNumber(int _num){
-
+    
     if(numBrushes == 0){
         cout<<"no brushes"<<endl;
         return;
     }
-
+    
     if(_num >= numBrushes){
         _num = numBrushes-1;
     }
     
     brushNumber = _num;
-                
+    
     IMG.loadImage(DL.getPath(brushNumber));
     
-     //no need for color
-     //we will use the image as a mask to
-     //draw with and multiply it with
-     //our drawing color.
+    //no need for color
+    //we will use the image as a mask to
+    //draw with and multiply it with
+    //our drawing color.
     IMG.setImageType(OF_IMAGE_GRAYSCALE);
     TMP.setImageType(OF_IMAGE_GRAYSCALE);
     updateTmpImage(brushWidth);
-
+    
 }
 
 //-----------------------------------------------------
 void pngBrush::setBrushWidth(int width){
-
+    
     if(numBrushes == 0)return;
     
     //only resize the brushNumber when its size has changed
@@ -111,7 +111,7 @@ void pngBrush::setBrushWidth(int width){
         brushWidth = width;
         updateTmpImage(brushWidth);
     }
-
+    
 }
 
 //-----------------------------------------------------
@@ -136,7 +136,7 @@ void pngBrush::updateTmpImage(float _brushWidth){
     float tmpH         = TMP.getHeight();
     
     float ratio     = (float)_brushWidth/tmpW;
-        
+    
     int newWidth      = _brushWidth;
     int newHeight      = tmpH*ratio;
     
@@ -149,7 +149,6 @@ void pngBrush::setBrushColor(int r, int g, int b){
     green    = g;
     blue     = b;
     alpha = 255;
-    cout<<"setBrushColor"<<endl;
     DRIPS.setColor(r, g, b);
 }
 
@@ -194,7 +193,7 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
             DRIPS.addDrip(_x+temp, _y+temp);
         }
     }
-                
+    
     //calc some info for where to draw from
     int pix            = 0;
     int stride         = width*imageNumBytes;
@@ -206,7 +205,7 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
     int ty = 0;
     float dx = 0;
     float dy = 0;
-            
+    
     if(newStroke){
         steps    = 1;    //then just one image
         oldX    = startX;
@@ -217,17 +216,17 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
         dx = ((float)(startX - oldX)/steps);
         dy = ((float)(startY - oldY)/steps);
     }
-                
+    
     //get the pixels of the brush
     unsigned char * brushPix = TMP.getPixels().getData();
-                
+    
     //if no distance is to be travelled
     //draw only one point
     if(dx == 0 && dy == 0) steps = 1;
     
     // lets draw the brushNumber many times to make a line
     for(int i = 0; i < steps; i++){
-                            
+        
         // we do - TMP.width/2 because we want the brushNumber to be
         // drawn from the center
         if(newStroke){
@@ -237,14 +236,14 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
             tx = (oldX + (int)(dx*(float)i)) - TMP.getWidth()/2;
             ty = (oldY + (int)(dy*(float)i)) - TMP.getHeight()/2;
         }
-                        
+        
         //this is what we use to move through the
         //brushNumber array
         int tPix = 0;
         
         int destX = (TMP.getWidth()  + tx);
         int destY = (TMP.getHeight() + ty);
-                        
+        
         //lets check that we don't draw out outside the projected
         //image
         if(destX >= width)   destX = width  -1;
@@ -265,18 +264,18 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
             tPix    = -ty * TMP.getWidth();
             ty         = 0;
         }
-                        
+        
         //this is for the right hand side cropped brush
         int offSetCorrectionRight = ((TMP.getWidth() + tx) -  destX);
         tPix += offSetCorrectionLeft;
-
+        
         //some vars we are going to need
         //put here to optimise?
         float r, g, b, a, value, ival;
-
+        
         for(int y = ty; y < destY; y++){
             for(int x = tx; x < destX; x++){
-                    
+                
                 pix = x*imageNumBytes + (y*stride);
                 
                 if(brushPix[tPix] == 0){
@@ -293,24 +292,24 @@ void pngBrush::addPoint(float _x, float _y, bool newStroke){
                 g     = (float)pixels[pix+1] * ival + green * value;
                 b     = (float)pixels[pix+2] * ival + blue  * value;
                 a     = (float)pixels[pix+3] * ival + alpha  * value;
-
+                
                 pixels[pix  ] = (unsigned char)r;
                 pixels[pix+1] = (unsigned char)g;
                 pixels[pix+2] = (unsigned char)b;
                 pixels[pix+3] = (unsigned char)a;
                 
-                                                                                                                
+                
                 tPix++;
             }
             tPix += offSetCorrectionRight;
         }
-    
+        
     }
     
     oldX = startX;
     oldY = startY;
 }
-    
+
 //-----------------------------------------------------
 unsigned char * pngBrush::getImageAsPixels(){
     return pixels;
@@ -322,5 +321,5 @@ void pngBrush::drawBrushColor(float x, float y, int w, int h){
     ofSetColor(red, green, blue);
     ofDrawRectangle(x,y,w,h);
 }
-        
-    
+
+

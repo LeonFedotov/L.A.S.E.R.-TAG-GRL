@@ -22,6 +22,11 @@ void gestureBrush::setupCustom(){
 	bNew = false;
 	nFramesSinceAdded = 0;
 	velSmooth = 4;
+    
+    FBO.allocate(width, height, GL_RGBA);
+    FBO.begin();
+    ofClear(0, 0, 0, 0);
+    FBO.end();
 }
 
 
@@ -35,7 +40,16 @@ void gestureBrush::update(){
 		// ok we've been a while, kickoff...
 		sm.mouseReleased();
 	}
+    
+    FBO.begin();
+    ofClear(0, 0, 0, 0);
+    draw(0, 0, width, height);
+    FBO.end();
 	
+}
+
+ofTexture & gestureBrush::getTexture(){
+    return FBO.getTexture();
 }
 
 //----------------------------------------------
@@ -69,6 +83,9 @@ void gestureBrush::draw(int x, int y, int w, int h){
 //----------------------------------------------
 void gestureBrush::clear(){
 	sm.clear();
+    FBO.begin();
+    ofClear(0, 0, 0, 0);
+    FBO.end();
 }
 
 		
