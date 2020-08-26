@@ -19,7 +19,7 @@ void appController::setup() {
     bSetupCamera = false;
     bSetupVideo = false;
     
-    ofSetWindowTitle("L.A.S.E.R.TAG 2020");
+
     
     loadSettings();
     
@@ -30,7 +30,6 @@ void appController::setup() {
     settingsImg.load("sys/settings.png");
     noticeImg.load("sys/criticalDontEditOrDelete.png");
     twentyTwentyImg.load("sys/2020.png");
-//    useTrueTypeFont("fonts/courbd.ttf", 10);
     laserTracking.useTrueTypeFont("fonts/courbd.ttf", 10);
     
     //////// NETWORK SETUP ///
@@ -144,11 +143,11 @@ void appController::loadSettings() {
     CLEAR_ZONE_SETTINGS.add(CLEAR_Y.set("Clear y pos", 1, 0, 480));
     CLEAR_ZONE_SETTINGS.add(CLEAR_W.set("Clear width", 1, 0, 200));
     CLEAR_ZONE_SETTINGS.add(CLEAR_H.set("Clear height", 1, 0, 200));
+
     clear_panel = GUI.addPanel(CLEAR_ZONE_SETTINGS);
-    
+
     NETWORK_SETTINGS.setName("Network settinSgs");
-    NETWORK_SETTINGS.add(NETWORK_SEND.set("Enable Network", false));
- 
+    NETWORK_SETTINGS.add(NETWORK_SEND.set("Enable OSC", false));
     NETWORK_SETTINGS.add(SEND_DATA.set("Send data", false));
     NETWORK_SETTINGS.add(IP_PT1.set("ip: val.xxx.xxx.xxx", 192, 0, 255));
     NETWORK_SETTINGS.add(IP_PT2.set("ip: xxx.val.xxx.xxx", 168, 0, 255));
@@ -166,13 +165,26 @@ void appController::loadSettings() {
     
     CAMERA_SETTINGS.setName("Camera settings");
     CAMERA_SETTINGS.add(USE_CAMERA.set("Use camera", false));
-  
-    CAMERA_SETTINGS.add(CAM_ID.set("Camera", 0, 0, 5));
+    ofVideoGrabber g;
+    vector<ofVideoDevice> tempG = g.listDevices();
+    CAMERA_SETTINGS.add(CAM_ID.set("Camera", 0, 0, tempG.size()-1));
     CAMERA_SETTINGS.add(CAM_WIDTH.set("Camera Width", 320, 0, 640));
     CAMERA_SETTINGS.add(CAM_HEIGHT.set("Camera Height", 240, 0, 480));
     CAMERA_SETTINGS.add(PROJECTION_W.set("Porjection Width", 1280, 640, 1920));
     CAMERA_SETTINGS.add(PROJECTION_H.set("Porjection Height", 720, 480, 1080));
     camera_panel = GUI.addPanel(CAMERA_SETTINGS);
+    
+    
+    save_panel = GUI.addPanel();
+    SAVE.set("Save", false);
+    LOAD.set("Load", false);
+    CLEAR.set("Clear Screen", false);
+    SHOW_CHECKERBOARD.set("Show Checkerboard", false);
+    
+    save_panel->add(SAVE, ofJson({{"type", "fullsize"}, {"text-align", "center"}}));
+    save_panel->add(LOAD, ofJson({{"type", "fullsize"}, {"text-align", "center"}}));
+    save_panel->add(SHOW_CHECKERBOARD, ofJson({{"type", "fullsize"}, {"text-align", "center"}}));
+    save_panel->add(CLEAR, ofJson({{"type", "fullsize"}, {"text-align", "center"}}));
     
     brush_panel->loadFromFile(ofToDataPath("settings/brush_settings.xml"));
     drip_panel->loadFromFile(ofToDataPath("settings/drip_settings.xml"));
@@ -195,23 +207,29 @@ void appController::setupListeners(){
     TRACK.addListener(this, &appController::onTrackChange);
     MUSIC.addListener(this, &appController::onMusicChange);
     NETWORK_SEND.addListener(this, &appController::onEnableNetwork);
+    SAVE.addListener(this, &appController::onSave);
+    LOAD.addListener(this, &appController::onLoad);
+    CLEAR.addListener(this, &appController::onClear);
 }
 
 void appController::positionGui(){
-    camera_panel->setShowHeader(false);
-    camera_panel->setPosition(0, 0);
+    save_panel->setShowHeader(false);
+    save_panel->setPosition(0, 0);
     
-    music_panel->setShowHeader(false);
-    music_panel->setPosition(0,  camera_panel->getPosition().y+camera_panel->getHeight());
+    camera_panel->setShowHeader(false);
+    camera_panel->setPosition(0, save_panel->getHeight());
     
     network_panel->setShowHeader(false);
-    network_panel->setPosition(0, camera_panel->getPosition().y+camera_panel->getHeight()+music_panel->getHeight());
+    network_panel->setPosition(0, save_panel->getHeight()+camera_panel->getHeight());
     
     tracking_panel->setShowHeader(false);
     tracking_panel->setPosition(camera_panel->getWidth(), 0);
     
     clear_panel->setShowHeader(false);
     clear_panel->setPosition(camera_panel->getWidth(), tracking_panel->getHeight());
+    
+    music_panel->setShowHeader(false);
+    music_panel->setPosition(camera_panel->getWidth(), tracking_panel->getHeight()+clear_panel->getHeight());
     
     brush_panel->setShowHeader(false);
     brush_panel->setPosition(camera_panel->getWidth()+tracking_panel->getWidth(), 0);
@@ -430,17 +448,12 @@ void appController::managePainting() {
     setCommonText("brush: " + brushes[BRUSH_MODE]->getName() + " - " + brushes[BRUSH_MODE]->getDescription());
     
     
-    
-
     if (brushes[BRUSH_MODE]->getIsColor()) {
         imageProjection.setColorTexture(brushes[BRUSH_MODE]->getTexture());
     }
     else {
         imageProjection.setGrayTexture(brushes[BRUSH_MODE]->getTexture());
     }
-    
-    
-    
 }
 
 //----------------------------------------------------
@@ -565,13 +578,13 @@ void appController::drawProjector() {
         VP.draw(0, 0, ofGetWindowWidth(), ofGetWindowHeight());
     }
     ofPopMatrix();
-    ofPopStyle();
+  
     
-    if (toggleGui){
+    if (toggleGui || SHOW_CHECKERBOARD){
         imageProjection.drawProjectionToolHandles(0, 0, ofGetWindowWidth(), ofGetWindowHeight(), false, true);
-        
         drawCheckerBoard();
     }
+    ofPopStyle();
 }
 
 
@@ -611,14 +624,9 @@ void appController::drawGUI() {
         colorManager.drawColorPanel(10, 164, 128, 24, 5);
     }
     ofPopMatrix();
-    
- 
-    
 
-    imageProjection.drawMiniProjectionTool(noticeImg.getWidth(), 300, true, true);
-    
+    imageProjection.drawMiniProjectionTool(noticeImg.getWidth(), 250, true, true);
 
-    
     //make sure we have a black background
     drawStatusMessage();
     
@@ -695,6 +703,20 @@ void appController::drawStatusMessage() {
     }
 }
 
+
+void appController::onSave(bool & b){
+    saveSettings();
+    SAVE = false;
+}
+void appController::onLoad(bool & b){
+    reloadSettings();
+    LOAD = false;
+}
+void appController::onClear(bool & b){
+    CLEAR = false;
+    setCommonText("status: clearing projection");
+    clearProjectedImage();
+}
 
 void appController::exit(){
     if(MUSIC){

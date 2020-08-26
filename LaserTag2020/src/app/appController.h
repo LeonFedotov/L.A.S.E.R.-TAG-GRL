@@ -151,9 +151,20 @@ protected:
     ofParameter<int> PROJECTION_W;
     ofParameter<int> PROJECTION_H;
     
+    ofxGuiPanel* save_panel;
+    ofParameter<bool> SAVE;
+    ofParameter<bool> LOAD;
+    ofParameter<bool> CLEAR;
+    ofParameter<bool> SHOW_CHECKERBOARD;
+    ofParameter<bool> FULLSCREEN;
+    
     bool bSetupCamera;
     bool bSetupVideo;
     
+    void onSave(bool & b);
+    void onLoad(bool & b);
+    void onClear(bool & b);
+    void onFullScreen(bool & b);
     void onBrushModeChange(int & i);
     void onEnableNetwork(bool & b);
     void onMusicChange(bool& b);
