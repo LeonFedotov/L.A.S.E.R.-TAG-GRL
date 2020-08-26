@@ -89,7 +89,7 @@ void pngBrush::setBrushNumber(int _num){
     
     brushNumber = _num;
     
-    IMG.loadImage(DL.getPath(brushNumber));
+    IMG.load(DL.getPath(brushNumber));
     
     //no need for color
     //we will use the image as a mask to

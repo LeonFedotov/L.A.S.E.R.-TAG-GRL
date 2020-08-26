@@ -145,11 +145,11 @@ float colorManager::getBlueF(){
 void colorManager::drawCurrentColor(int x, int y, int w, int h){
 	applyColor();
 	ofFill();
-	ofRect(x,y,w,h);
+	ofDrawRectangle(x,y,w,h);
 
 	ofSetHexColor(0xFFFFFF);
 	ofNoFill();
-	ofRect(x,y,w,h);
+	ofDrawRectangle(x,y,w,h);
 	ofFill();
 }
 
@@ -173,7 +173,7 @@ void colorManager::drawColorPanel(int x, int y, int w, int h, int num){
 		ofSetHexColor(	hex[pos] );
 
 		ofFill();
-		ofRect( 4 + x + shift, 4 + y,step - 8,h - 8);
+		ofDrawRectangle( 4 + x + shift, 4 + y,step - 8,h - 8);
 										
 		shift += step;
 	}

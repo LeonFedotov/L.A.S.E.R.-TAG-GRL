@@ -88,12 +88,12 @@ public:
     
     ofPoint			smoothPos;
     ofPoint			smoothVel;
-    ofPoint 			outPoints;
+    ofPoint 		outPoints;
     
     ofxCvColorImage  	VideoFrame;
-    ofxCvColorImage 		WarpedFrame;
-    ofxCvColorImage 		hsvFrame;
-    ofxCvGrayscaleImage 	PresenceFrame;
+    ofxCvColorImage 	WarpedFrame;
+    ofxCvColorImage 	hsvFrame;
+    ofxCvGrayscaleImage PresenceFrame;
     ofxCvContourFinder	Contour;
     
     ofImage				resizeMe;

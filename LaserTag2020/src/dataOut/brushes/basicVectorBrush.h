@@ -125,7 +125,7 @@ public:
         for(int i = 0; i <= whichStroke; i++){
             ofSetColor(stroke[i].r, stroke[i].g, stroke[i].b);
             for(int j = 1; j < stroke[i].num; j++){
-                ofLine(stroke[i].pts[j-1].x, stroke[i].pts[j-1].y, stroke[i].pts[j].x, stroke[i].pts[j].y);
+                ofDrawLine(stroke[i].pts[j-1].x, stroke[i].pts[j-1].y, stroke[i].pts[j].x, stroke[i].pts[j].y);
             }
         }
         ofPopMatrix();

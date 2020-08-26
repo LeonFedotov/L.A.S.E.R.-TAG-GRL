@@ -9,6 +9,8 @@ int main( ){
 	shared_ptr<ofAppBaseWindow> mainWindow = ofCreateWindow(settings);
 
 	settings.setSize(1280, 720);
+    glm::vec2 screenSize = mainWindow.get()->getScreenSize();
+    settings.setPosition(glm::vec2(screenSize.x, screenSize.y/2-720/2));
 	settings.resizable = true;
 	settings.shareContextWith = mainWindow;
     

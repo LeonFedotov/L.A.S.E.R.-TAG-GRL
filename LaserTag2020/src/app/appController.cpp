@@ -11,7 +11,6 @@ void appController::setup() {
     
     //some vars
     full = false;
-    singleScreenMode = false;
     toggleGui = false;
     callibration = false;
     keyTimer = 0;
@@ -24,15 +23,9 @@ void appController::setup() {
     
     loadSettings();
     
-    ////// BRUSHES and PROJECTION ///
-    imageProjection.setup(PROJECTION_W, PROJECTION_H);
-    setupBrushes(PROJECTION_W, PROJECTION_H);
-    
-    CM.loadColorSettings(ofToDataPath("settings/colors.xml"));
-
-    ////// XML SETTINGS ////
+    setupProjections();
     imageProjection.loadSettings(ofToDataPath("settings/quadProj.xml"));
-    
+    colorManager.loadColorSettings(ofToDataPath("settings/colors.xml"));
     /////// GUI STUFF ////
     settingsImg.load("sys/settings.png");
     noticeImg.load("sys/criticalDontEditOrDelete.png");
@@ -59,6 +52,12 @@ void appController::setup() {
     trackPlayer.loadTracks(ofToDataPath("tunes/"));
     
     setupListeners();
+}
+
+void appController::setupProjections(){
+    imageProjection.setup(PROJECTION_W, PROJECTION_H);
+    setupBrushes(PROJECTION_W, PROJECTION_H);
+    imageProjection.setToolDimensions(640, 360);
 }
 
 void appController::setupCamera(){
@@ -160,7 +159,6 @@ void appController::loadSettings() {
     
     MUSIC_SETTINGS.setName("Music player settings");
     MUSIC_SETTINGS.add(MUSIC.set("Play music", true));
-   
     MUSIC_SETTINGS.add(TRACK.set("Which track", 0, 0, 999));
 
     MUSIC_SETTINGS.add(VOL.set("Volume", 80, 0, 100));
@@ -378,8 +376,8 @@ void appController::manageMusic() {
 //----------------------------------------------------
 void appController::updateBrushSettings(bool first) {
     
-    CM.setCurrentColor(BRUSH_COLOR);
-    unsigned char* rgb = CM.getColor3I();
+    colorManager.setCurrentColor(BRUSH_COLOR);
+    unsigned char* rgb = colorManager.getColor3I();
     
     for (int i = 0; i < NUM_BRUSHES; i++) {
         brushes[i]->dripsSettings(DRIPS, DRIPS_FREQ, DRIPS_SPEED, DRIP_DIRECTION, DRIP_WIDTH);
@@ -535,10 +533,16 @@ void appController::keyPress(int key) {
 void appController::keyPressProjector(int key) {
     if (key == 'f') {
         ofToggleFullscreen();
+        PROJECTION_W = ofGetWindowWidth();
+        PROJECTION_H = ofGetWindowHeight();
+        setupProjections();
     }
     else if (key == ' ') {
         toggleGui = !toggleGui;
-    }
+    }else if (key == 'd') {
+         setCommonText("status: clearing projection");
+         clearProjectedImage();
+     }
 }
 
 //----------------------------------------------------
@@ -563,7 +567,11 @@ void appController::drawProjector() {
     ofPopMatrix();
     ofPopStyle();
     
-    if (toggleGui)imageProjection.drawProjectionToolHandles(0, 0, ofGetWindowWidth(), ofGetWindowHeight(), false, true);
+    if (toggleGui){
+        imageProjection.drawProjectionToolHandles(0, 0, ofGetWindowWidth(), ofGetWindowHeight(), false, true);
+        
+        drawCheckerBoard();
+    }
 }
 
 
@@ -600,7 +608,7 @@ void appController::drawGUI() {
         }
         
         drawText("Brush color", 10, 159);
-        CM.drawColorPanel(10, 164, 128, 24, 5);
+        colorManager.drawColorPanel(10, 164, 128, 24, 5);
     }
     ofPopMatrix();
     
@@ -623,6 +631,45 @@ void appController::drawGUI() {
     }
     ofPopStyle();
 }
+
+void appController::drawCheckerBoard(){
+    
+    int width=ofGetWindowWidth();
+    int height=ofGetWindowHeight();
+    int squareSize = 120;
+    int counter=0;
+    
+    
+    checkerboardFBO.allocate(width, height, GL_RGBA);
+    checkerboardFBO.begin();
+    ofClear(0, 0, 0);
+    ofPushStyle();
+    for (int j=0; j<height;j=j+squareSize) {
+        for (int i=0; i<width; i=i+squareSize*2){
+            if (counter%2==0){
+                ofSetColor(0);
+                ofDrawRectangle(i, j, squareSize, squareSize);
+                ofSetColor(255);
+                ofDrawRectangle(i+squareSize, j, squareSize, squareSize);
+            }else {
+                ofSetColor(255);
+                ofDrawRectangle(i, j, squareSize, squareSize);
+                ofSetColor(0);
+                ofDrawRectangle(i+squareSize, j, squareSize, squareSize);
+            }
+        }
+        counter++;
+    }
+    ofPopStyle();
+    checkerboardFBO.end();
+    
+    ofPushMatrix();
+    ofMultMatrix(imageProjection.matrix);
+    ofSetColor(255, 255, 255);
+    checkerboardFBO.draw(0, 0);
+    ofPopMatrix();
+}
+
 
 //----------------------------------------------------		
 void appController::drawStatusMessage() {

@@ -4,6 +4,7 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
 	//set background to black
+//    ofSetLogLevel(OF_LOG_VERBOSE);
 	ofBackground(0, 0, 0);	
 	//for smooth animation
 	ofSetVerticalSync(true);

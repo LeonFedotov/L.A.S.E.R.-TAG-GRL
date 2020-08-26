@@ -49,6 +49,7 @@ public:
     void setupVideo();
     void positionGui();
 protected:
+    void setupProjections();
     void setupBrushes(int w, int h);
     void setupListeners();
     void loadSettings();
@@ -63,8 +64,10 @@ protected:
     void updateBrushSettings(bool first);
     void managePainting();
     void drawStatusMessage();
+    void drawCheckerBoard();
     
-    colorManager CM;
+    ofFbo checkerboardFBO;
+    colorManager colorManager;
     
     ofVideoPlayer VP;
     bool webMovieLoaded;
