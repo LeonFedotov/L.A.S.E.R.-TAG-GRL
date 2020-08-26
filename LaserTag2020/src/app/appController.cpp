@@ -637,6 +637,10 @@ void appController::drawGUI() {
         ofSetColor(255, 255, 255);
         VP.draw(0, 0, ofGetWidth(), ofGetHeight());
     }
+    ofSetColor(255, 255, 255);
+    ofDrawBitmapString("Drag the second window to your projector screen and press F\nPlease reference the help guide for more information", noticeImg.getWidth()+10, ofGetHeight()-noticeImg.getHeight()-16);
+    
+    
     ofPopStyle();
 }
 
