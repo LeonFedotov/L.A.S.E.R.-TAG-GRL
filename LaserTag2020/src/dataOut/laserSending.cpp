@@ -19,6 +19,7 @@ bool laserSending::setup(string host, int port){
     this->port = port;
     this->host = host;
     bSetup = OSC.setup(host, port);
+    return bSetup;
 }
 
 bool laserSending::isSetup(){

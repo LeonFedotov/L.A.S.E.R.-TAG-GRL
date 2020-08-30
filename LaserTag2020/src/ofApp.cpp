@@ -8,7 +8,7 @@ void ofApp::setup(){
 	ofBackground(0, 0, 0);
     ofSetWindowTitle("L.A.S.E.R.TAG 2020");
 	//for smooth animation
-	ofSetVerticalSync(true);
+	ofSetVerticalSync(false);
     ofSetFrameRate(60);
 	init();
 	appCtrl.setup();
