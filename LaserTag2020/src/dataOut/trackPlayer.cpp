@@ -10,6 +10,7 @@ trackPlayer::trackPlayer(){
 int trackPlayer::loadTracks(string directoryPath){
 	DLIST.allowExt("mp3");
 	numTracks = DLIST.listDir(directoryPath);
+    DLIST.sort();
 	return numTracks;
 }
 

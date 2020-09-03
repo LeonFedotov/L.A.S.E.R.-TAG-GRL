@@ -255,7 +255,7 @@ void guiQuad::draw(float x, float y, float width, float height, int red, int gre
 			if(i == 2)ofSetColor(0, 0, 255);
 			if(i == 3)ofSetColor(0, 255, 255);
 
-			ofDrawRectangle(srcScaled[i].x, srcScaled[i].y, 8, 8);
+			ofDrawRectangle(srcScaled[i].x, srcScaled[i].y, 10, 10);
 		}
 		ofSetRectMode(OF_RECTMODE_CORNER);
 		ofFill();

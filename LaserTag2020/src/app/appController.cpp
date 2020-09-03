@@ -496,7 +496,7 @@ void appController::reloadSettings() {
 //----------------------------------------------------
 void appController::selectPoint(float x, float y) {
     laserTracking.QUAD.selectPoint(x, y, noticeImg.getWidth(), 10, 320, 240, 60);
-    imageProjection.selectMiniQuad(x, y, 30);
+    imageProjection.selectMiniQuad(x, y, 60);
     imageProjection.updateMiniQuad(x, y);
 }
 
@@ -528,9 +528,6 @@ void appController::keyPress(int key) {
     }
     else if (key == 'r') {
         reloadSettings();
-    }
-    else if (key == 'c') {
-        laserTracking.openCameraSettings();
     }
     else if (key == 'd') {
         setCommonText("status: clearing projection");
@@ -638,7 +635,7 @@ void appController::drawGUI() {
         VP.draw(0, 0, ofGetWidth(), ofGetHeight());
     }
     ofSetColor(255, 255, 255);
-    ofDrawBitmapString("Drag the second window to your projector screen and press F\nPlease reference the help guide for more information", noticeImg.getWidth()+10, ofGetHeight()-noticeImg.getHeight()-16);
+    ofDrawBitmapString("Drag the second window to your projector screen and press F to go full screen\ns - saves\nr - loads\nd - clears screen\nspacebar - toggles checkerboard\nPlease reference the help guide for more information\n", noticeImg.getWidth()+10, ofGetHeight()-noticeImg.getHeight()-16);
     
     
     ofPopStyle();
