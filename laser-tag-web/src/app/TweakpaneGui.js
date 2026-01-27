@@ -4,6 +4,7 @@
  */
 import { Pane } from 'tweakpane';
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
+import { SettingsManager } from './SettingsManager.js';
 
 export class TweakpaneGui {
   constructor(app) {
@@ -11,6 +12,9 @@ export class TweakpaneGui {
     this.pane = null;
     this.folders = {};
     this.bindings = [];
+
+    // Settings persistence manager
+    this.settingsManager = new SettingsManager();
 
     // Color palette from original L.A.S.E.R. TAG (9 colors)
     this.colorPalette = [
@@ -25,58 +29,14 @@ export class TweakpaneGui {
       { name: 'Black', hex: '#000000' }
     ];
 
-    // GUI state (bound to controls)
-    this.state = {
-      // Brush settings
-      brushColor: '#0AC2FF',
-      brushColorIndex: 4,
-      brushWidth: 4,
-      brushMode: 'smooth',
-      brushIndex: 0,
-      glowIntensity: 0.5,
-      shadowOffset: 8,
-      shadowColor: '#FF0AC2',
-      shadowColorIndex: 3,  // Default to magenta
+    // GUI state (bound to controls) - load from autosave or use defaults
+    const autosaved = this.settingsManager.loadAutosave();
+    this.state = autosaved
+      ? this.settingsManager.mergeWithDefaults(autosaved)
+      : this.settingsManager.getDefaults();
 
-      // Drip settings
-      dripsEnabled: true,
-      dripsFrequency: 30,
-      dripsSpeed: 0.3,
-      dripsDirection: 0,
-      dripsWidth: 1,
-
-      // Bloom/Post-processing settings (disabled by default)
-      bloomEnabled: false,
-      bloomIntensity: 0.5,
-      bloomThreshold: 0.3,
-
-      // Tracker settings
-      hueMin: 35,
-      hueMax: 85,
-      satMin: 50,
-      satMax: 255,
-      valMin: 200,
-      valMax: 255,
-      smoothing: 0.5,
-      trackerPreset: 'Green Laser',
-
-      // Display settings
-      showDebug: true,
-      backgroundColor: '#000000',
-      brightness: 100,
-      useMouseInput: false,
-
-      // Camera settings
-      flipH: false,
-      flipV: false,
-
-      // Erase zone settings
-      eraseZoneEnabled: false,
-      eraseZoneX: 0,
-      eraseZoneY: 0,
-      eraseZoneWidth: 15,
-      eraseZoneHeight: 15
-    };
+    // Current preset name (for display)
+    this.currentPresetName = '';
   }
 
   /**
@@ -104,6 +64,7 @@ export class TweakpaneGui {
     this.createDisplayFolder();
     this.createActionsFolder();
     this.createEraseZoneFolder();
+    this.createSettingsFolder();  // Settings persistence UI
 
     // Sync initial state from app
     this.syncFromApp();
@@ -113,6 +74,70 @@ export class TweakpaneGui {
 
     // Apply initial drip settings
     this.updateDripParams();
+
+    // Apply loaded settings to app (important when loading autosave)
+    this.applyStateToApp();
+  }
+
+  /**
+   * Apply current GUI state to app components
+   */
+  applyStateToApp() {
+    // Brush settings
+    this.app.setBrushColor(this.state.brushColor);
+    this.app.setBrushWidth(this.state.brushWidth);
+    this.app.setActiveBrush(this.state.brushIndex);
+
+    const brush = this.app.getActiveBrush();
+    if (brush.params.mode !== undefined) {
+      brush.params.mode = this.state.brushMode;
+    }
+    if (brush.params.glowIntensity !== undefined) {
+      brush.params.glowIntensity = this.state.glowIntensity;
+    }
+    if (brush.params.shadowOffset !== undefined) {
+      brush.params.shadowOffset = this.state.shadowOffset;
+    }
+    if (brush.params.shadowColor !== undefined) {
+      brush.params.shadowColor = this.state.shadowColor;
+    }
+
+    // Drips
+    this.updateDripParams();
+
+    // Bloom
+    if (this.app.postProcessor) {
+      this.app.postProcessor.params.bloomEnabled = this.state.bloomEnabled;
+      this.app.postProcessor.params.bloomIntensity = this.state.bloomIntensity;
+      this.app.postProcessor.params.bloomThreshold = this.state.bloomThreshold;
+    }
+
+    // Tracker
+    this.updateTrackerParams();
+
+    // Display
+    this.app.settings.backgroundColor = this.state.backgroundColor;
+    this.app.useMouseInput = this.state.useMouseInput;
+
+    // Camera
+    if (this.app.camera) {
+      this.app.camera.setFlipH(this.state.flipH);
+      this.app.camera.setFlipV(this.state.flipV);
+    }
+
+    // Erase zone
+    this.app.settings.eraseZoneEnabled = this.state.eraseZoneEnabled;
+    this.app.settings.eraseZoneX = this.state.eraseZoneX / 100;
+    this.app.settings.eraseZoneY = this.state.eraseZoneY / 100;
+    this.app.settings.eraseZoneWidth = this.state.eraseZoneWidth / 100;
+    this.app.settings.eraseZoneHeight = this.state.eraseZoneHeight / 100;
+  }
+
+  /**
+   * Trigger autosave of current state
+   */
+  triggerAutosave() {
+    this.settingsManager.autosave(this.state);
   }
 
   /**
@@ -224,6 +249,7 @@ export class TweakpaneGui {
       this.state.brushColorIndex = idx;
       this.app.setBrushColor(color.hex);
       this.updateColorSelection();
+      this.triggerAutosave();
     });
 
     // Custom brush color
@@ -231,6 +257,7 @@ export class TweakpaneGui {
       label: 'Custom'
     }).on('change', (ev) => {
       this.app.setBrushColor(ev.value);
+      this.triggerAutosave();
     });
 
     // Shadow color palette
@@ -251,6 +278,7 @@ export class TweakpaneGui {
         brush.params.shadowColor = color.hex;
       }
       this.updateShadowColorSelection();
+      this.triggerAutosave();
     });
 
     // Custom shadow color
@@ -261,6 +289,7 @@ export class TweakpaneGui {
       if (brush.params.shadowColor !== undefined) {
         brush.params.shadowColor = ev.value;
       }
+      this.triggerAutosave();
     });
 
     // Apply colors after creation
@@ -289,6 +318,7 @@ export class TweakpaneGui {
       options: brushOptions
     }).on('change', (ev) => {
       this.app.setActiveBrush(ev.value);
+      this.triggerAutosave();
     });
 
     // Width slider
@@ -299,6 +329,7 @@ export class TweakpaneGui {
       step: 1
     }).on('change', (ev) => {
       this.app.setBrushWidth(ev.value);
+      this.triggerAutosave();
     });
 
     // Mode names for mosaic
@@ -330,6 +361,7 @@ export class TweakpaneGui {
         brush.params.mode = mode.value;
       }
       this.updateModeSelection();
+      this.triggerAutosave();
     });
 
     // Apply mode mosaic styling after creation
@@ -346,6 +378,7 @@ export class TweakpaneGui {
       if (brush.params.glowIntensity !== undefined) {
         brush.params.glowIntensity = ev.value;
       }
+      this.triggerAutosave();
     });
 
     // Shadow offset (for C++ modes)
@@ -359,6 +392,7 @@ export class TweakpaneGui {
       if (brush.params.shadowOffset !== undefined) {
         brush.params.shadowOffset = ev.value;
       }
+      this.triggerAutosave();
     });
   }
 
@@ -474,21 +508,21 @@ export class TweakpaneGui {
     // Drips section
     folder.addBinding(this.state, 'dripsEnabled', {
       label: 'Drips'
-    }).on('change', () => this.updateDripParams());
+    }).on('change', () => { this.updateDripParams(); this.triggerAutosave(); });
 
     folder.addBinding(this.state, 'dripsFrequency', {
       label: 'Drip Freq',
       min: 1,
       max: 120,
       step: 1
-    }).on('change', () => this.updateDripParams());
+    }).on('change', () => { this.updateDripParams(); this.triggerAutosave(); });
 
     folder.addBinding(this.state, 'dripsSpeed', {
       label: 'Drip Spd',
       min: 0.1,
       max: 12,
       step: 0.1
-    }).on('change', () => this.updateDripParams());
+    }).on('change', () => { this.updateDripParams(); this.triggerAutosave(); });
 
     folder.addBinding(this.state, 'dripsDirection', {
       label: 'Drip Dir',
@@ -498,14 +532,14 @@ export class TweakpaneGui {
         'North': 2,
         'East': 3
       }
-    }).on('change', () => this.updateDripParams());
+    }).on('change', () => { this.updateDripParams(); this.triggerAutosave(); });
 
     folder.addBinding(this.state, 'dripsWidth', {
       label: 'Drip W',
       min: 1,
       max: 25,
       step: 1
-    }).on('change', () => this.updateDripParams());
+    }).on('change', () => { this.updateDripParams(); this.triggerAutosave(); });
 
     // Bloom section
     folder.addBinding(this.state, 'bloomEnabled', {
@@ -514,6 +548,7 @@ export class TweakpaneGui {
       if (this.app.postProcessor) {
         this.app.postProcessor.params.bloomEnabled = ev.value;
       }
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'bloomIntensity', {
@@ -525,6 +560,7 @@ export class TweakpaneGui {
       if (this.app.postProcessor) {
         this.app.postProcessor.params.bloomIntensity = ev.value;
       }
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'bloomThreshold', {
@@ -536,6 +572,7 @@ export class TweakpaneGui {
       if (this.app.postProcessor) {
         this.app.postProcessor.params.bloomThreshold = ev.value;
       }
+      this.triggerAutosave();
     });
   }
 
@@ -594,6 +631,7 @@ export class TweakpaneGui {
             this.app.captureCanvas.width = this.app.camera.width;
             this.app.captureCanvas.height = this.app.camera.height;
             console.log('Switched to camera:', ev.value);
+            this.triggerAutosave();
           } catch (e) {
             console.error('Failed to switch camera:', e);
           }
@@ -622,6 +660,7 @@ export class TweakpaneGui {
         this.app.captureCanvas.height = this.app.camera.height;
         this.app.tracker.init(this.app.camera.width, this.app.camera.height);
         console.log('Resolution changed to:', this.app.camera.width, 'x', this.app.camera.height);
+        this.triggerAutosave();
       } catch (e) {
         console.error('Failed to change resolution:', e);
       }
@@ -632,12 +671,14 @@ export class TweakpaneGui {
       label: 'Flip Horizontal'
     }).on('change', (ev) => {
       this.app.camera.setFlipH(ev.value);
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'flipV', {
       label: 'Flip Vertical'
     }).on('change', (ev) => {
       this.app.camera.setFlipV(ev.value);
+      this.triggerAutosave();
     });
   }
 
@@ -668,6 +709,7 @@ export class TweakpaneGui {
       if (p) {
         this.applyTrackerPreset(...p);
       }
+      this.triggerAutosave();
     });
 
     // HSV color preview (computed from min/max values)
@@ -695,6 +737,7 @@ export class TweakpaneGui {
     }).on('change', () => {
       this.updateTrackerParams();
       this.updateHsvPreviews();
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'hueMax', {
@@ -705,6 +748,7 @@ export class TweakpaneGui {
     }).on('change', () => {
       this.updateTrackerParams();
       this.updateHsvPreviews();
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'satMin', {
@@ -715,6 +759,7 @@ export class TweakpaneGui {
     }).on('change', () => {
       this.updateTrackerParams();
       this.updateHsvPreviews();
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'satMax', {
@@ -725,6 +770,7 @@ export class TweakpaneGui {
     }).on('change', () => {
       this.updateTrackerParams();
       this.updateHsvPreviews();
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'valMin', {
@@ -735,6 +781,7 @@ export class TweakpaneGui {
     }).on('change', () => {
       this.updateTrackerParams();
       this.updateHsvPreviews();
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'valMax', {
@@ -745,6 +792,7 @@ export class TweakpaneGui {
     }).on('change', () => {
       this.updateTrackerParams();
       this.updateHsvPreviews();
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'smoothing', {
@@ -752,7 +800,7 @@ export class TweakpaneGui {
       min: 0,
       max: 1,
       step: 0.05
-    }).on('change', () => this.updateTrackerParams());
+    }).on('change', () => { this.updateTrackerParams(); this.triggerAutosave(); });
   }
 
   /**
@@ -812,12 +860,14 @@ export class TweakpaneGui {
       label: 'Background'
     }).on('change', (ev) => {
       this.app.settings.backgroundColor = ev.value;
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'useMouseInput', {
       label: 'Mouse (M)'
     }).on('change', (ev) => {
       this.app.useMouseInput = ev.value;
+      this.triggerAutosave();
     });
 
     folder.addButton({ title: 'Fullscreen' }).on('click', () => {
@@ -856,6 +906,7 @@ export class TweakpaneGui {
       label: 'Enabled'
     }).on('change', (ev) => {
       this.app.settings.eraseZoneEnabled = ev.value;
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'eraseZoneX', {
@@ -865,6 +916,7 @@ export class TweakpaneGui {
       step: 1
     }).on('change', (ev) => {
       this.app.settings.eraseZoneX = ev.value / 100;
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'eraseZoneY', {
@@ -874,6 +926,7 @@ export class TweakpaneGui {
       step: 1
     }).on('change', (ev) => {
       this.app.settings.eraseZoneY = ev.value / 100;
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'eraseZoneWidth', {
@@ -883,6 +936,7 @@ export class TweakpaneGui {
       step: 1
     }).on('change', (ev) => {
       this.app.settings.eraseZoneWidth = ev.value / 100;
+      this.triggerAutosave();
     });
 
     folder.addBinding(this.state, 'eraseZoneHeight', {
@@ -892,7 +946,201 @@ export class TweakpaneGui {
       step: 1
     }).on('change', (ev) => {
       this.app.settings.eraseZoneHeight = ev.value / 100;
+      this.triggerAutosave();
     });
+  }
+
+  /**
+   * Create settings management folder (save/load/reset presets)
+   */
+  createSettingsFolder() {
+    const folder = this.pane.addFolder({ title: 'Settings', expanded: false });
+    this.folders.settings = folder;
+
+    // Preset selector state
+    this.presetState = {
+      selectedPreset: '',
+      presetName: ''
+    };
+
+    // Load preset dropdown
+    this.updatePresetDropdown(folder);
+
+    // Save preset name input
+    folder.addBinding(this.presetState, 'presetName', {
+      label: 'Preset Name'
+    });
+
+    // Save button
+    folder.addButton({ title: 'Save Preset' }).on('click', () => {
+      const name = this.presetState.presetName.trim();
+      if (!name) {
+        alert('Please enter a preset name');
+        return;
+      }
+
+      // Confirm if preset exists
+      const existing = this.settingsManager.getPresetsList();
+      if (existing.includes(name)) {
+        if (!confirm(`Preset "${name}" already exists. Overwrite?`)) {
+          return;
+        }
+      }
+
+      if (this.settingsManager.savePreset(name, this.state)) {
+        this.currentPresetName = name;
+        this.updatePresetDropdown(folder);
+        alert(`Preset "${name}" saved`);
+      } else {
+        alert('Failed to save preset');
+      }
+    });
+
+    // Load button
+    folder.addButton({ title: 'Load Selected' }).on('click', () => {
+      const name = this.presetState.selectedPreset;
+      if (!name) {
+        alert('Please select a preset to load');
+        return;
+      }
+
+      const settings = this.settingsManager.loadPreset(name);
+      if (settings) {
+        this.loadSettings(settings);
+        this.currentPresetName = name;
+        alert(`Preset "${name}" loaded`);
+      } else {
+        alert(`Failed to load preset "${name}"`);
+      }
+    });
+
+    // Delete button
+    folder.addButton({ title: 'Delete Selected' }).on('click', () => {
+      const name = this.presetState.selectedPreset;
+      if (!name) {
+        alert('Please select a preset to delete');
+        return;
+      }
+
+      if (!confirm(`Delete preset "${name}"?`)) {
+        return;
+      }
+
+      if (this.settingsManager.deletePreset(name)) {
+        this.presetState.selectedPreset = '';
+        this.updatePresetDropdown(folder);
+        alert(`Preset "${name}" deleted`);
+      } else {
+        alert(`Failed to delete preset "${name}"`);
+      }
+    });
+
+    // Separator
+    folder.addBlade({
+      view: 'separator'
+    });
+
+    // Reset to defaults button
+    folder.addButton({ title: 'Reset to Defaults' }).on('click', () => {
+      if (!confirm('Reset all settings to defaults?')) {
+        return;
+      }
+
+      this.loadSettings(this.settingsManager.getDefaults());
+      this.currentPresetName = '';
+      this.settingsManager.clearAutosave();
+      alert('Settings reset to defaults');
+    });
+
+    // Export/Import separator
+    folder.addBlade({
+      view: 'separator'
+    });
+
+    // Export button
+    folder.addButton({ title: 'Export to File' }).on('click', () => {
+      const json = this.settingsManager.exportToJson(this.state);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `laser-tag-settings-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Import button
+    folder.addButton({ title: 'Import from File' }).on('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const settings = this.settingsManager.importFromJson(ev.target.result);
+          if (settings) {
+            this.loadSettings(settings);
+            alert('Settings imported successfully');
+          } else {
+            alert('Failed to import settings - invalid file');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    });
+  }
+
+  /**
+   * Update the preset dropdown with current presets list
+   */
+  updatePresetDropdown(folder) {
+    // Remove existing preset binding if it exists
+    if (this.presetBinding) {
+      this.presetBinding.dispose();
+    }
+
+    const presets = this.settingsManager.getPresetsList();
+    const options = { '(none)': '' };
+    presets.forEach(name => {
+      options[name] = name;
+    });
+
+    // Add as first item in folder
+    this.presetBinding = folder.addBinding(this.presetState, 'selectedPreset', {
+      label: 'Load Preset',
+      options: options,
+      index: 0
+    });
+  }
+
+  /**
+   * Load settings into GUI state and apply to app
+   */
+  loadSettings(settings) {
+    // Merge with defaults to ensure all keys exist
+    const merged = this.settingsManager.mergeWithDefaults(settings);
+
+    // Update state
+    Object.assign(this.state, merged);
+
+    // Apply to app
+    this.applyStateToApp();
+
+    // Update UI selections
+    this.updateColorSelection();
+    this.updateShadowColorSelection();
+    this.updateModeSelection();
+    this.updateHsvPreviews();
+
+    // Refresh all UI bindings
+    this.pane.refresh();
+
+    // Autosave the loaded settings
+    this.triggerAutosave();
   }
 
   /**
