@@ -1,0 +1,10 @@
+lib/
+
+# Claude/AI tooling
+.claude/
+.tldr/
+.tldrignore
+thoughts/
+
+# Runtime settings (user-specific)
+bin/data/settings/*_settings.xml

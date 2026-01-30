@@ -79,3 +79,18 @@ Desktop.ini
 
 # Android
 .csettings
+
+##################
+# Claude/AI tooling
+##################
+.claude/
+.mcp.json
+.tldr/
+.tldrignore
+thoughts/
+.playwright-mcp/
+
+##################
+# Runtime settings
+##################
+*_settings.xml
