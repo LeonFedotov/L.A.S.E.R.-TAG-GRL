@@ -1,22 +1,14 @@
 #include "ofMain.h"
 #include "ofApp.h"
 #include "ofAppGLFWWindow.h"
-#include "GLFW/glfw3.h"
 //========================================================================
 int main( ){
-	// Initialize GLFW first so we can set window hints
-	if (!glfwInit()) {
-		return -1;
-	}
-	// Disable retina framebuffer - macOS will scale the window content 2x on HiDPI displays
-	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
-
 	ofGLFWWindowSettings settings;
 	settings.setSize(2560, 1600);  // 2x scale of 1280x800
 	settings.resizable = true;
 	settings.numSamples = 4;  // Anti-aliasing
 	shared_ptr<ofAppBaseWindow> mainWindow = ofCreateWindow(settings);
-	mainWindow->setVerticalSync(false);  // Disable vsync on main window too
+	mainWindow->setVerticalSync(false);
 
 	settings.setSize(1280, 720);
     glm::vec2 screenSize = mainWindow.get()->getScreenSize();

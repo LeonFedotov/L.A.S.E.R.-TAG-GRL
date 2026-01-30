@@ -58,7 +58,6 @@ void ofApp::windowResized(int w, int h){
     uiScale = std::min(scaleX, scaleY);
 }
 
-
 void ofApp::drawProjector(ofEventArgs& args) {
 	appCtrl.drawProjector();
 }

@@ -169,15 +169,9 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 		return;
 	}
 
-	int t1, t2, t3, t4, t5;
-
-	int t0 = ofGetElapsedTimeMillis();
-
 	///////////////////////////////////////////////////////////
 	// Part 1 - get the video data
 	///////////////////////////////////////////////////////////
-
-	float frameStartTime = ofGetElapsedTimef();
 
 	//pointer to our incoming video pixels
 	ofPixels pixCam;
@@ -210,7 +204,6 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 		// Part 2 - warp the video based on our quad
 		///////////////////////////////////////////////////////////
 
-		t1 = ofGetElapsedTimeMillis();
 		//add to openCV and warp to our dst image
 		VideoFrame.setFromPixels(pixCam);
 		WarpedFrame.warpIntoMe(VideoFrame, QUAD.getScaledQuadPoints(W, H), warpDst);
@@ -329,9 +322,6 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 			shouldClear = true;
 		}
 
-		t3 = ofGetElapsedTimeMillis();
-
-
 		///////////////////////////////////////////////////////////
 		// Part 4 - find the largest blob of possible candidates 
 		////////////////////////////////////////////////////////////
@@ -342,19 +332,11 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
 		//than 20 pixels by 20 pixels right?
 		//so lets make our max blob rpIntoMe(VideoFrame, QUAD.getScaledQuadPoints(W,H), warpDst);
 
-		t2 = ofGetElapsedTimeMillis();
-
-
 		///////////////////////////////////////////////////////////
 		// Part 3 - convert tsize 400
 
 		int maxSize = 999999999;
 		Contour.findContours(PresenceFrame, minSize, maxSize, 150, false, true);
-
-		t4 = ofGetElapsedTimeMillis();
-
-		//printf("v%i - w%i - h%i - b%i = %i\n", t1-t0, t2-t1, t3-t2, t4-t3, t4-t0);
-
 
 		///////////////////////////////////////////////////////////
 		// Part 5 - finally calculate our laser coordinates
@@ -437,12 +419,6 @@ void laserTracking::processFrame(float hue, float hueThresh, float sat, float va
             stroke.clear();
 
 		}
-	}
-
-	// Debug timing - log slow frames (>50ms)
-	float frameTime = (ofGetElapsedTimef() - frameStartTime) * 1000.0f;
-	if(frameTime > 50.0f){
-		ofLogWarning("laserTracking") << "SLOW FRAME: " << frameTime << "ms";
 	}
 }
 
