@@ -84,7 +84,6 @@ protected:
     bool toggleGui, full, singleScreenMode, callibration, bInverted;
     int camWidth, camHeight, keyTimer;
     
-    ofImage twentyTwentyImg;
     ofImage settingsImg;
     ofImage noticeImg;
     

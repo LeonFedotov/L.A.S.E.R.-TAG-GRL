@@ -37,7 +37,7 @@ void appController::setup() {
     /////// GUI STUFF ////
     settingsImg.load("sys/settings.png");
     noticeImg.load("sys/criticalDontEditOrDelete.png");
-    twentyTwentyImg.load("sys/2020.png");
+    // Year logo removed - project now "laser-tag-2026"
     laserTracking.useTrueTypeFont("fonts/courbd.ttf", 10);
     
     //////// NETWORK SETUP ///
@@ -45,15 +45,22 @@ void appController::setup() {
     
     if (USE_CAMERA) {
         setupCamera();
-    }else{
+    } else {
+        // Try video first, fall back to camera if video fails
         setupVideo();
+        if (!laserTracking.bVideoSetup) {
+            ofLogNotice("appController") << "Video setup failed, falling back to camera";
+            setupCamera();
+        }
     }
     //lets update our brushes on launch
     updateBrushSettings(true);
     
     //see if there is a video from GRL to display.
-    webMovieLoaded = VP.load("");
-    if (webMovieLoaded)VP.play();
+    // Disabled: VP.load("") with empty path crashes on Windows/MSYS2
+    // webMovieLoaded = VP.load("");
+    // if (webMovieLoaded)VP.play();
+    webMovieLoaded = false;
     
     //////// MUSIC PLAYER ////
     trackPlayer.loadTracks(ofToDataPath("tunes/"));
@@ -614,15 +621,6 @@ void appController::drawGUI() {
     ofSetColor(255, 255, 255);
 
     noticeImg.draw(0, LOGICAL_HEIGHT-noticeImg.getHeight()-16);
-    if (twentyTwentyImg.isAllocated()) {
-        ofPushMatrix();
-        {
-            ofTranslate(420, LOGICAL_HEIGHT-noticeImg.getHeight()-twentyTwentyImg.getHeight()/2);
-            ofRotateDeg(15);
-            twentyTwentyImg.draw(0, 0);
-        }
-        ofPopMatrix();
-    }
 
     laserTracking.draw(noticeImg.getWidth(), 10);
 

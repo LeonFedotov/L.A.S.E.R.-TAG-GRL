@@ -85,9 +85,22 @@ void laserTracking::setupCamera(int deviceNumber, int width, int height) {
 
 //same as above - from/to using test movies
 //requires a restart
-//---------------------------		
+//---------------------------
 void laserTracking::setupVideo(string videoPath) {
-	VP.load(videoPath);
+	// Check if video file exists before loading
+	if (!ofFile::doesFileExist(videoPath)) {
+		ofLogError("laserTracking") << "Video file not found: " << videoPath;
+		bVideoSetup = false;
+		return;
+	}
+
+	bool loaded = VP.load(videoPath);
+	if (!loaded || VP.getWidth() == 0) {
+		ofLogError("laserTracking") << "Failed to load video: " << videoPath;
+		bVideoSetup = false;
+		return;
+	}
+
 	VP.setVolume(0.0f);  // Mute video to prevent audio hardware conflict
 	VP.play();
 	VP.setUseTexture(true);

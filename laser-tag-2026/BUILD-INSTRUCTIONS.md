@@ -1,6 +1,6 @@
 # Build Instructions
 
-This document covers building LaserTag2020 on macOS, Windows, and Linux.
+This document covers building laser-tag-2026 on macOS, Windows, and Linux.
 
 ## Prerequisites
 
@@ -23,11 +23,11 @@ git clone https://github.com/frauzufall/ofxGuiExtended.git
 git clone https://github.com/kylemcdonald/ofxCv.git
 
 # 3. Build
-cd ../../..  # back to LaserTag2020
+cd ../../..  # back to laser-tag-2026
 make Release
 
 # 4. Run
-./bin/LaserTag2020.app/Contents/MacOS/LaserTag2020
+./bin/laser-tag-2026.app/Contents/MacOS/laser-tag-2026
 ```
 
 ## Platform-Specific Instructions
@@ -47,7 +47,7 @@ make clean     # Clean build artifacts
 
 **Alternative (Xcode):**
 ```bash
-open LaserTag2020.xcodeproj
+open laser-tag-2026.xcodeproj
 ```
 
 **Known Issues:**
@@ -69,8 +69,8 @@ open LaserTag2020.xcodeproj
    git clone https://github.com/kylemcdonald/ofxCv.git
    ```
 4. Run **Project Generator** (`projectGenerator-vs/projectGenerator.exe`)
-5. Select the LaserTag2020 folder and generate the VS project
-6. Open `LaserTag2020.sln` in Visual Studio
+5. Select the laser-tag-2026 folder and generate the VS project
+6. Open `laser-tag-2026.sln` in Visual Studio
 7. Build Release x64
 
 **Audio on Windows:**
@@ -95,7 +95,7 @@ git clone https://github.com/frauzufall/ofxGuiExtended.git
 git clone https://github.com/kylemcdonald/ofxCv.git
 
 # 3. Build
-cd /path/to/LaserTag2020
+cd /path/to/laser-tag-2026
 make Release
 ```
 

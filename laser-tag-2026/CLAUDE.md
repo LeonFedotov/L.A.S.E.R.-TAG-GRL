@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LaserTag2020 is an interactive art installation built with **openFrameworks** (C++). It uses computer vision to track laser pointers in real-time, allowing users to "paint" on projected surfaces using lasers as brushes.
+laser-tag-2026 is an interactive art installation built with **openFrameworks** (C++). It uses computer vision to track laser pointers in real-time, allowing users to "paint" on projected surfaces using lasers as brushes.
 
 ## Build Commands
 
@@ -21,7 +21,7 @@ make Release
 make clean
 
 # Alternative: Open in Xcode
-open LaserTag2020.xcodeproj
+open laser-tag-2026.xcodeproj
 ```
 
 ## Build Status
@@ -35,7 +35,7 @@ open LaserTag2020.xcodeproj
 - Missing `std::` prefix on `noskipws`
 - Added missing includes (`ofPath.h`, `ofVboMesh.h`)
 
-### Patches Applied (LaserTag2020)
+### Patches Applied (laser-tag-2026)
 - Made `baseBrush::getTexture()` pure virtual
 
 ## First-Time Setup
@@ -44,7 +44,7 @@ open LaserTag2020.xcodeproj
 
 ```bash
 git clone --recursive https://github.com/LeonFedotov/L.A.S.E.R.-TAG-GRL.git
-cd L.A.S.E.R.-TAG-GRL/LaserTag2020
+cd L.A.S.E.R.-TAG-GRL/laser-tag-2026
 ```
 
 If already cloned without `--recursive`:
@@ -71,7 +71,7 @@ make -j16
 
 ```bash
 git clone --recursive https://github.com/LeonFedotov/L.A.S.E.R.-TAG-GRL.git && \
-cd L.A.S.E.R.-TAG-GRL/LaserTag2020 && \
+cd L.A.S.E.R.-TAG-GRL/laser-tag-2026 && \
 mkdir -p lib && cd lib && \
 curl -LO https://github.com/openframeworks/openFrameworks/releases/download/0.12.1/of_v0.12.1_osx_release.tar.gz && \
 tar -xzf of_v0.12.1_osx_release.tar.gz && rm of_v0.12.1_osx_release.tar.gz && \
@@ -91,7 +91,7 @@ cd .. && make -j16
 ## Running
 
 ```bash
-./bin/LaserTag2020.app/Contents/MacOS/LaserTag2020
+./bin/laser-tag-2026.app/Contents/MacOS/laser-tag-2026
 ```
 
 The app creates two windows:

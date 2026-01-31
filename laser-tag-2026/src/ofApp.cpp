@@ -6,7 +6,7 @@ void ofApp::setup(){
 	//set background to black
 //    ofSetLogLevel(OF_LOG_VERBOSE);
 	ofBackground(0, 0, 0);
-    ofSetWindowTitle("L.A.S.E.R.TAG 2020");
+    ofSetWindowTitle("L.A.S.E.R.TAG 2026");
 	//for smooth animation
 	ofSetVerticalSync(false);
     ofSetFrameRate(60);
