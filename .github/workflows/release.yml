@@ -8,7 +8,14 @@ on:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            os_name: ubuntu22.04
+          - os: ubuntu-24.04
+            os_name: ubuntu24.04
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,7 +27,7 @@ jobs:
         with:
           path: |
             laser-tag-2026/lib/of_v0.12.1_linux64_gcc6_release
-          key: of-linux-0.12.1-v2
+          key: of-linux-0.12.1-${{ matrix.os_name }}-v2
 
       - name: Download openFrameworks
         if: steps.cache-of.outputs.cache-hit != 'true'
@@ -49,9 +56,9 @@ jobs:
           path: |
             laser-tag-2026/obj
             laser-tag-2026/lib/of_v0.12.1_linux64_gcc6_release/libs/openFrameworksCompiled/lib
-          key: build-linux-${{ hashFiles('laser-tag-2026/src/**') }}
+          key: build-linux-${{ matrix.os_name }}-${{ hashFiles('laser-tag-2026/src/**') }}
           restore-keys: |
-            build-linux-
+            build-linux-${{ matrix.os_name }}-
 
       - name: Update config.make for Linux
         run: |
@@ -109,14 +116,18 @@ jobs:
           Categories=Graphics;Art;
           DESKTOP
 
-          # Create control file with dependencies
+          # Dynamically detect OpenCV package suffix for this Ubuntu version
+          OPENCV_SUFFIX=$(apt-cache search '^libopencv-core[0-9]' | head -1 | grep -oP 'libopencv-core\K[0-9.d]+')
+          echo "Detected OpenCV suffix: ${OPENCV_SUFFIX}"
+
+          # Create control file with dynamically detected OpenCV dependencies
           cat > ${PKG_DIR}/DEBIAN/control << CONTROL
           Package: laser-tag-2026
           Version: ${VERSION}
           Section: graphics
           Priority: optional
           Architecture: amd64
-          Depends: libopencv-core4.5d, libopencv-imgproc4.5d, libopencv-video4.5d, libopencv-videoio4.5d, libglfw3, libfreeimage3, libpugixml1v5, liburiparser1, libgstreamer1.0-0, libgstreamer-plugins-base1.0-0, libasound2, libpulse0, libgtk-3-0, libcurl4
+          Depends: libopencv-core${OPENCV_SUFFIX}, libopencv-imgproc${OPENCV_SUFFIX}, libopencv-video${OPENCV_SUFFIX}, libopencv-videoio${OPENCV_SUFFIX}, libglfw3, libfreeimage3, libpugixml1v5, liburiparser1, libgstreamer1.0-0, libgstreamer-plugins-base1.0-0, libasound2, libpulse0, libgtk-3-0, libcurl4
           Maintainer: GRL <info@graffitiresearchlab.com>
           Description: Laser Tag 2026 - Interactive laser graffiti
            An interactive art installation that uses computer vision
@@ -124,15 +135,15 @@ jobs:
            projected surfaces using lasers as brushes.
           CONTROL
 
-          # Build the package
+          # Build the package with OS-specific name
           dpkg-deb --build ${PKG_DIR}
-          mv ${PKG_DIR}.deb bin/laser-tag-2026-linux.deb
+          mv ${PKG_DIR}.deb bin/laser-tag-2026-${{ matrix.os_name }}.deb
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-build
-          path: laser-tag-2026/bin/laser-tag-2026-linux.deb
+          name: linux-build-${{ matrix.os_name }}
+          path: laser-tag-2026/bin/laser-tag-2026-${{ matrix.os_name }}.deb
 
   build-macos:
     runs-on: macos-14
@@ -263,7 +274,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            linux-build/laser-tag-2026-linux.deb
+            linux-build-ubuntu22.04/laser-tag-2026-ubuntu22.04.deb
+            linux-build-ubuntu24.04/laser-tag-2026-ubuntu24.04.deb
             macos-build/laser-tag-2026-macos.zip
             windows-build/laser-tag-2026-windows.zip
           generate_release_notes: true
@@ -281,8 +293,20 @@ jobs:
             Extract the zip and run `laser-tag-2026.exe`. The `data/` folder must be in the same directory as the executable.
 
             ### Linux (Debian/Ubuntu)
+            Choose the deb matching your Ubuntu version:
+            - `laser-tag-2026-ubuntu22.04.deb` - For Ubuntu 22.04 LTS (OpenCV 4.5)
+            - `laser-tag-2026-ubuntu24.04.deb` - For Ubuntu 24.04 LTS (OpenCV 4.6)
+            
+            For Ubuntu 25.x users: Use the 24.04 deb and add the Noble repository:
             ```bash
-            sudo dpkg -i laser-tag-2026-linux.deb
+            # Add Ubuntu 24.04 repo for OpenCV 4.6
+            echo "deb [arch=amd64] http://archive.ubuntu.com/ubuntu noble main universe" | sudo tee /etc/apt/sources.list.d/noble-opencv.list
+            sudo apt update
+            ```
+            
+            Install:
+            ```bash
+            sudo dpkg -i laser-tag-2026-ubuntu*.deb
             sudo apt-get install -f  # Install dependencies
             laser-tag-2026-launcher
             ```
