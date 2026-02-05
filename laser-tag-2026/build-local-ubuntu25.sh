@@ -108,6 +108,18 @@ if [ -f "lib/of_v0.12.1_linux64_gcc6_release/libs/openFrameworks/types/ofTypes.h
     fi
 fi
 
+# Patch GLFW for headless/X11 operation (GLFW 3.4+ requires explicit platform hint)
+GLFW_WINDOW_FILE="lib/of_v0.12.1_linux64_gcc6_release/libs/openFrameworks/app/ofAppGLFWWindow.cpp"
+if [ -f "$GLFW_WINDOW_FILE" ]; then
+    if ! grep -q "GLFW_PLATFORM_X11" "$GLFW_WINDOW_FILE"; then
+        echo "Patching ofAppGLFWWindow.cpp for GLFW 3.4+ X11 platform support..."
+        sed -i '/if (!glfwInit()) {/i\
+#if GLFW_VERSION_MAJOR >= 3 \&\& GLFW_VERSION_MINOR >= 4\
+        glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);\
+#endif' "$GLFW_WINDOW_FILE"
+    fi
+fi
+
 # Step 5: Build
 echo ""
 echo "=== Step 5: Building ==="
