@@ -27,9 +27,12 @@ let hsvMat = null;
 let maskMat = null;
 let morphKernel = null;
 let roiMask = null;
+let lowerBound = null;
+let upperBound = null;
 let width = 0;
 let height = 0;
 let cvReady = false;
+let boundsNeedUpdate = true; // rebuild bound Mats when params change
 
 // Tracking parameters (mirrors LaserTracker.params)
 let params = {
@@ -47,6 +50,8 @@ let params = {
  * Load OpenCV.js in the worker context
  */
 function loadOpenCV(url) {
+  var INIT_TIMEOUT = 30000; // 30 s
+
   return new Promise((resolve, reject) => {
     try {
       self.importScripts(url);
@@ -66,7 +71,13 @@ function loadOpenCV(url) {
           resolve();
         }).catch(reject);
       } else {
-        cv.onRuntimeInitialized = resolve;
+        var timer = setTimeout(function () {
+          reject(new Error('OpenCV.js runtime initialization timed out'));
+        }, INIT_TIMEOUT);
+        cv.onRuntimeInitialized = function () {
+          clearTimeout(timer);
+          resolve();
+        };
       }
     } else {
       reject(new Error('OpenCV.js did not define cv global'));
@@ -87,6 +98,24 @@ function initMatrices(w, h) {
   hsvMat = new cv.Mat();
   maskMat = new cv.Mat();
   morphKernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(5, 5));
+
+  boundsNeedUpdate = true;
+}
+
+/**
+ * Rebuild the HSV lower/upper bound Mats (called when params or dimensions change)
+ */
+function rebuildBounds() {
+  if (lowerBound && !lowerBound.isDeleted()) lowerBound.delete();
+  if (upperBound && !upperBound.isDeleted()) upperBound.delete();
+
+  lowerBound = new cv.Mat(height, width, cv.CV_8UC3, [
+    params.hueMin, params.satMin, params.valMin, 0
+  ]);
+  upperBound = new cv.Mat(height, width, cv.CV_8UC3, [
+    params.hueMax, params.satMax, params.valMax, 255
+  ]);
+  boundsNeedUpdate = false;
 }
 
 /**
@@ -99,6 +128,8 @@ function cleanupMatrices() {
     if (maskMat && !maskMat.isDeleted()) maskMat.delete();
     if (morphKernel && !morphKernel.isDeleted()) morphKernel.delete();
     if (roiMask && !roiMask.isDeleted()) roiMask.delete();
+    if (lowerBound && !lowerBound.isDeleted()) lowerBound.delete();
+    if (upperBound && !upperBound.isDeleted()) upperBound.delete();
   } catch (e) {
     // Ignore cleanup errors
   }
@@ -107,6 +138,8 @@ function cleanupMatrices() {
   maskMat = null;
   morphKernel = null;
   roiMask = null;
+  lowerBound = null;
+  upperBound = null;
 }
 
 /**
@@ -159,18 +192,13 @@ function detectLaser(data, w, h) {
     cv.cvtColor(srcMat, hsvMat, cv.COLOR_RGBA2RGB);
     cv.cvtColor(hsvMat, hsvMat, cv.COLOR_RGB2HSV);
 
-    // HSV thresholding
-    const lowerBound = new cv.Mat(hsvMat.rows, hsvMat.cols, hsvMat.type(), [
-      params.hueMin, params.satMin, params.valMin, 0
-    ]);
-    const upperBound = new cv.Mat(hsvMat.rows, hsvMat.cols, hsvMat.type(), [
-      params.hueMax, params.satMax, params.valMax, 255
-    ]);
+    // Rebuild bound Mats lazily (only when params or dimensions change)
+    if (boundsNeedUpdate) {
+      rebuildBounds();
+    }
 
+    // HSV thresholding (reuses pre-allocated bound Mats)
     cv.inRange(hsvMat, lowerBound, upperBound, maskMat);
-
-    lowerBound.delete();
-    upperBound.delete();
 
     // Morphological operations (noise cleanup)
     cv.morphologyEx(maskMat, maskMat, cv.MORPH_OPEN, morphKernel);
@@ -250,6 +278,7 @@ self.onmessage = function (e) {
 
     case 'setParams': {
       Object.assign(params, msg.params);
+      boundsNeedUpdate = true;
       break;
     }
 

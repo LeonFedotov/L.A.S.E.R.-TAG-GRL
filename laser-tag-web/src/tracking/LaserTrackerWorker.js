@@ -58,8 +58,8 @@ export class LaserTrackerWorker {
     // ---- Performance ----
     this.processTime = 0;
 
-    // ---- ROI ----
-    this.roiMask = null; // kept for interface compat; actual mask lives in worker
+    // ---- Configuration ----
+    this.opencvUrl = '/lib/opencv.js'; // override via init options if needed
 
     // ---- Debug ----
     this._lastImageData = null; // cached for drawDebug
@@ -74,10 +74,13 @@ export class LaserTrackerWorker {
    * Tries to create a Web Worker; falls back to main-thread LaserTracker.
    * @param {number} width - Frame width
    * @param {number} height - Frame height
+   * @param {Object} [options] - Optional configuration
+   * @param {string} [options.opencvUrl] - URL to opencv.js (default: '/lib/opencv.js')
    */
-  init(width, height) {
+  init(width, height, options = {}) {
     this.width = width;
     this.height = height;
+    if (options.opencvUrl) this.opencvUrl = options.opencvUrl;
     this.initKalmanFilter();
 
     try {
@@ -92,7 +95,7 @@ export class LaserTrackerWorker {
       };
 
       // Determine OpenCV URL for the worker
-      const opencvUrl = new URL('/lib/opencv.js', self.location.origin).href;
+      const opencvUrl = new URL(this.opencvUrl, self.location.origin).href;
 
       this.worker.postMessage({
         type: 'init',
