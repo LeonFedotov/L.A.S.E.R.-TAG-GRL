@@ -58,6 +58,14 @@ export class TweakpaneGui {
       if (event.data.type === 'popup-ready' && !this.projectorWindow) {
         // Popup is ready - try to reconnect (only if we don't already have a reference)
         this.tryReconnectPopup();
+      } else if (event.data.type === 'keydown') {
+        // Forward keyboard shortcuts from popup to main app
+        const key = event.data.key.toLowerCase();
+        if (key === 'c') {
+          this.adapter.clearCanvas();
+        } else if (key === 'z' && (event.data.ctrlKey || event.data.metaKey)) {
+          this.adapter.undo();
+        }
       }
     };
   }
@@ -1301,6 +1309,13 @@ export class TweakpaneGui {
           document.addEventListener('dblclick', goFullscreen);
           document.addEventListener('keydown', (e) => {
             if (e.key.toLowerCase() === 'f') goFullscreen();
+            // Forward shortcuts to main window via BroadcastChannel
+            if (e.key.toLowerCase() === 'c' ||
+                (e.key.toLowerCase() === 'z' && (e.ctrlKey || e.metaKey))) {
+              const channel = new BroadcastChannel('laserTagProjectorChannel');
+              channel.postMessage({ type: 'keydown', key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey });
+              channel.close();
+            }
           });
         </script>
         <script>
