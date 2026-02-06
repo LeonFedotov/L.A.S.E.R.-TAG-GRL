@@ -39,9 +39,9 @@ export class RenderingPipeline {
     // Settings reference
     this.settings = null;
 
-    // Throttle secondary canvas rendering (every N frames)
+    // Throttle secondary preview canvases (every N frames)
     this.frameCount = 0;
-    this.secondaryRenderInterval = 2; // Render clone/popup every 2nd frame
+    this.secondaryRenderInterval = 3; // Render clone/warped camera every 3rd frame
   }
 
   /**
@@ -107,7 +107,10 @@ export class RenderingPipeline {
   render() {
     this.renderMainCanvas();
 
-    // Throttle secondary canvas rendering for performance
+    // Popup is the primary projector output - render every frame
+    this.renderPopupWindow();
+
+    // Throttle secondary preview canvases for performance
     // But always render during calibration for responsive UI
     this.frameCount++;
     const isCalibrating = this.projectorCalibration.isCalibrating;
@@ -115,7 +118,6 @@ export class RenderingPipeline {
     if (isCalibrating || isCameraCalibrating || this.frameCount % this.secondaryRenderInterval === 0) {
       this.renderWarpedCamera();
       this.renderCloneCanvas();
-      this.renderPopupWindow();
     }
   }
 
@@ -403,8 +405,9 @@ export class RenderingPipeline {
     const overlayCanvas = this.projectorPopup.overlayCanvas;
     const srcCanvas = this.projectorCanvas;
 
-    // Get fresh context references (helps after fullscreen changes)
-    const popupCtx = popupCanvas.getContext('2d');
+    // Use cached context (set in setProjectorPopup), fall back to getContext
+    const popupCtx = this.projectorPopup.ctx || popupCanvas.getContext('2d');
+    const overlayCtx = this.projectorPopup.overlayCtx || (overlayCanvas ? overlayCanvas.getContext('2d') : null);
 
     const w = popupCanvas.width;
     const h = popupCanvas.height;
@@ -413,10 +416,8 @@ export class RenderingPipeline {
     popupCtx.fillStyle = this.settings.backgroundColor;
     popupCtx.fillRect(0, 0, w, h);
 
-    // Clear and prepare overlay canvas
-    let overlayCtx = null;
-    if (overlayCanvas) {
-      overlayCtx = overlayCanvas.getContext('2d');
+    // Clear overlay canvas
+    if (overlayCtx && overlayCanvas) {
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
     }
 

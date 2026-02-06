@@ -8,7 +8,7 @@
  * Communication protocol:
  *   Main → Worker:
  *     { type: 'init',         opencvUrl, width, height }
- *     { type: 'processFrame', data: Uint8ClampedArray, width, height }
+ *     { type: 'processFrame', data: ArrayBuffer, width, height }  (transferred)
  *     { type: 'setParams',    params }
  *     { type: 'setROI',       quad }
  *     { type: 'dispose' }
@@ -171,7 +171,7 @@ function setROI(quad) {
 
 /**
  * Detect laser position via HSV color thresholding + contour analysis
- * @param {Uint8ClampedArray} data - RGBA pixel data
+ * @param {ArrayBuffer} data - RGBA pixel data (transferred from main thread)
  * @param {number} w - Frame width
  * @param {number} h - Frame height
  * @returns {{ position: {x: number, y: number}|null, processTime: number }}
@@ -185,8 +185,8 @@ function detectLaser(data, w, h) {
   }
 
   try {
-    // Load pixel data into OpenCV matrix
-    srcMat.data.set(data);
+    // Load pixel data into OpenCV matrix (data is an ArrayBuffer via Transferable)
+    srcMat.data.set(new Uint8ClampedArray(data));
 
     // Convert RGBA → HSV
     cv.cvtColor(srcMat, hsvMat, cv.COLOR_RGBA2RGB);

@@ -1409,7 +1409,14 @@ export class TweakpaneGui {
       setTimeout(resize, 500);
     });
 
-    // F key fullscreen disabled - use native OS fullscreen instead
+    // Keyboard shortcuts in popup window
+    popupWindow.addEventListener('keydown', (e) => {
+      switch (e.key.toLowerCase()) {
+        case 'c':
+          this.adapter.clearCanvas();
+          break;
+      }
+    });
 
     // Mouse handlers for projector calibration - on overlay canvas for proper interaction
     let popupDragging = false;

@@ -17,7 +17,12 @@ export class LaserTrackerWorker {
     // ---- Worker management ----
     this.worker = null;
     this.workerReady = false;
+    this._workerBusy = false;
     this.fallbackTracker = null; // used when worker is unavailable
+
+    // ---- Pending commands (queued before worker is ready) ----
+    this._pendingROI = null;
+    this._pendingParams = null;
 
     // ---- Tracking state (same fields as LaserTracker) ----
     this.isTracking = false;
@@ -178,15 +183,19 @@ export class LaserTrackerWorker {
     }
 
     // --- Worker path ---
-    if (!this.workerReady) return this.currentPosition;
+    // Skip if worker isn't ready or is still processing the previous frame
+    if (!this.workerReady || this._workerBusy) return this.currentPosition;
 
-    // Post frame data to worker (structured clone copies the TypedArray)
+    this._workerBusy = true;
+
+    // Transfer frame data via Transferable to avoid ~1.2MB structured clone per frame
+    const buffer = imageData.data.buffer.slice(0);
     this.worker.postMessage({
       type: 'processFrame',
-      data: imageData.data,
+      data: buffer,
       width: imageData.width,
       height: imageData.height
-    });
+    }, [buffer]);
 
     return this.currentPosition;
   }
@@ -201,10 +210,12 @@ export class LaserTrackerWorker {
     switch (msg.type) {
       case 'ready':
         this.workerReady = true;
+        this._flushPendingCommands();
         console.log('LaserTrackerWorker: Web Worker ready (OpenCV loaded)');
         break;
 
       case 'result':
+        this._workerBusy = false;
         this._applyDetectionResult(msg.position, msg.processTime);
         break;
 
@@ -341,6 +352,9 @@ export class LaserTrackerWorker {
     }
     if (this.worker && this.workerReady) {
       this.worker.postMessage({ type: 'setROI', quad });
+    } else if (this.worker) {
+      // Queue until worker is ready (e.g. during OpenCV loading)
+      this._pendingROI = quad;
     }
   }
 
@@ -353,8 +367,10 @@ export class LaserTrackerWorker {
       this.fallbackTracker.setParams(newParams);
       return;
     }
-    if (this.worker) {
+    if (this.worker && this.workerReady) {
       this.worker.postMessage({ type: 'setParams', params: this._getWorkerParams() });
+    } else if (this.worker) {
+      this._pendingParams = this._getWorkerParams();
     }
   }
 
@@ -467,6 +483,34 @@ export class LaserTrackerWorker {
   // -----------------------------------------------------------
   //  Private helpers
   // -----------------------------------------------------------
+
+  /**
+   * Send any commands that were queued before the worker was ready.
+   */
+  _flushPendingCommands() {
+    if (this._pendingParams) {
+      this.worker.postMessage({ type: 'setParams', params: this._pendingParams });
+      this._pendingParams = null;
+    }
+    if (this._pendingROI) {
+      this.worker.postMessage({ type: 'setROI', quad: this._pendingROI });
+      this._pendingROI = null;
+    }
+  }
+
+  /**
+   * Reset all tracking state (API parity with LaserTracker)
+   */
+  resetTrackingState() {
+    this.currentPosition = null;
+    this.lastPosition = null;
+    this.predictedPosition = null;
+    this.velocity = { x: 0, y: 0 };
+    this.isTracking = false;
+    this.isNewStroke = true;
+    this.framesSinceLastDetection = 0;
+    this.kalmanState = null;
+  }
 
   /**
    * Copy tracking state from fallback tracker to our own fields
