@@ -1,6 +1,7 @@
 [submodule "laser-tag-2026/local_addons/ofxGuiExtended"]
 	path = laser-tag-2026/local_addons/ofxGuiExtended
-	url = https://github.com/LeonFedotov/ofxGuiExtended.git
+	url = https://github.com/frauzufall/ofxGuiExtended.git
+	branch = master
 [submodule "laser-tag-2026/local_addons/ofxCv"]
 	path = laser-tag-2026/local_addons/ofxCv
 	url = https://github.com/kylemcdonald/ofxCv.git

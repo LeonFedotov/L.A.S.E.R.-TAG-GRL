@@ -83,7 +83,7 @@ cd .. && make -j16
 | Component | Version | Source |
 |-----------|---------|--------|
 | openFrameworks | **0.12.1** | [GitHub Release](https://github.com/openframeworks/openFrameworks/releases/tag/0.12.1) |
-| ofxGuiExtended | `of-0.12-compatibility` branch | [LeonFedotov/ofxGuiExtended](https://github.com/LeonFedotov/ofxGuiExtended/tree/of-0.12-compatibility) (submodule) |
+| ofxGuiExtended | master | [frauzufall/ofxGuiExtended](https://github.com/frauzufall/ofxGuiExtended) (submodule) |
 | ofxCv | master | [kylemcdonald/ofxCv](https://github.com/kylemcdonald/ofxCv) (submodule) |
 
 **OF path**: Configured in `config.make` via `OF_ROOT = lib/of_v0.12.1_osx_release`.
