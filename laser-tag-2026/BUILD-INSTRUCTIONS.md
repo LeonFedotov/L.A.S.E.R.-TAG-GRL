@@ -126,12 +126,11 @@ If you get errors about missing addon files, ensure:
 2. The `OF_ROOT` path in `config.make` points to your OF installation
 
 ### Template Lookup Errors (ofxGuiExtended)
-If you see errors like "member access into incomplete type", apply the fix:
+The upstream ofxGuiExtended now includes OF 0.12 compatibility fixes. If you're using an older version and see errors like "member access into incomplete type", this is a C++ two-phase lookup issue with templates that has been fixed in the current version. Update the submodule or apply the fix:
 ```cpp
 // Change: param->getName()
 // To:     this->param->getName()
 ```
-This is a C++ two-phase lookup issue with templates.
 
 ### Audio Not Playing (macOS)
 This is the known AVFoundation conflict. Workarounds:

@@ -124,11 +124,11 @@ Configuration files in `bin/data/settings/`:
 - **Addons** (listed in `addons.make`):
   - `ofxOpenCv` - OpenCV bindings (built-in)
   - `ofxCv` - Kyle McDonald's CV utilities (submodule)
-  - `ofxGuiExtended` - Extended GUI controls (submodule with patches)
+  - `ofxGuiExtended` - Extended GUI controls (submodule)
   - `ofxOsc` - OSC networking (built-in)
   - `ofxXmlSettings` - XML config (built-in)
 
-**Important**: ofxGuiExtended uses a patched version for OF 0.12 compatibility. See CLAUDE.md for details on applied patches.
+**Note**: ofxGuiExtended now includes OF 0.12 compatibility fixes in upstream (merged from LeonFedotov/ofxGuiExtended PR #80). The submodule uses the upstream frauzufall/ofxGuiExtended repository.
 
 ### JavaScript (laser-tag-web)
 Key dependencies:

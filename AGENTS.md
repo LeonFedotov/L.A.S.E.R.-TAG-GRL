@@ -32,7 +32,6 @@ This file provides guidance to AI coding agents (including GitHub Copilot) when 
 #### For laser-tag-2026 (C++)
 - **Always build before committing**: `make clean && make Release`
 - **Respect openFrameworks patterns**: Use ofLog(), follow OF lifecycle methods (setup, update, draw)
-- **Handle the patch requirements**: ofxGuiExtended requires compatibility patches (see CLAUDE.md)
 - **One class per file**: Follow the existing pattern of matching .cpp/.h files
 - **Prefix booleans with 'b'**: e.g., `bIsActive`, `bShowDebug`
 
@@ -46,7 +45,7 @@ This file provides guidance to AI coding agents (including GitHub Copilot) when 
 
 **Critical**: Don't upgrade openFrameworks beyond 0.12.1 without extensive testing. The project uses:
 - Specific OF 0.12.1 APIs
-- Patched versions of ofxGuiExtended
+- ofxGuiExtended with OF 0.12 compatibility (now upstream)
 - Version-pinned submodules (ofxCv, ofxGuiExtended)
 
 For JavaScript dependencies, follow semantic versioning but test thoroughly due to OpenCV.js compatibility requirements.
