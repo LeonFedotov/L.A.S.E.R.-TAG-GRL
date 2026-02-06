@@ -3,7 +3,7 @@
  * Based on appController.cpp from the original L.A.S.E.R. TAG
  */
 import { Camera } from '../tracking/Camera.js';
-import { LaserTracker } from '../tracking/LaserTracker.js';
+import { LaserTrackerWorker } from '../tracking/LaserTrackerWorker.js';
 import { PostProcessor } from '../effects/PostProcessor.js';
 import { CameraCalibrationManager } from '../calibration/CameraCalibrationManager.js';
 import { ProjectorCalibrationManager } from '../calibration/ProjectorCalibrationManager.js';
@@ -14,7 +14,7 @@ export class AppController {
   constructor() {
     // Core components
     this.camera = new Camera();
-    this.tracker = new LaserTracker();
+    this.tracker = new LaserTrackerWorker();
 
     // Calibration managers
     this.cameraCalibration = new CameraCalibrationManager();
