@@ -56,6 +56,7 @@ async function initApp() {
       projectorCanvas: document.getElementById('projector-canvas'),
       projectorCloneCanvas: document.getElementById('projector-clone-canvas'),
       debugCanvas: document.getElementById('debug-canvas'),
+      warpedCameraCanvas: document.getElementById('warped-camera-canvas'),
       videoElement: document.getElementById('video-element')
     };
 
@@ -140,6 +141,38 @@ function setupEventListeners() {
 
   debugCanvas.addEventListener('mouseleave', () => {
     selectedPoint = -1;
+  });
+
+  // Color picker: click on camera preview to sample pixel and set HSV range
+  debugCanvas.addEventListener('click', (e) => {
+    if (!app || app.isCalibrating) return;
+
+    const rect = debugCanvas.getBoundingClientRect();
+    const scaleX = app.camera.width / rect.width;
+    const scaleY = app.camera.height / rect.height;
+    const camX = (e.clientX - rect.left) * scaleX;
+    const camY = (e.clientY - rect.top) * scaleY;
+
+    const hsv = app.samplePixelHSV(camX, camY);
+    if (!hsv) return;
+
+    // Set HSV range with tolerance around the sampled value
+    const hueMargin = 15;
+    const satMargin = 60;
+    const valMargin = 60;
+
+    const hueMin = Math.max(0, hsv.h - hueMargin);
+    const hueMax = Math.min(180, hsv.h + hueMargin);
+    const satMin = Math.max(0, hsv.s - satMargin);
+    const satMax = Math.min(255, hsv.s + satMargin);
+    const valMin = Math.max(0, hsv.v - valMargin);
+    const valMax = Math.min(255, hsv.v + valMargin);
+
+    if (gui) {
+      gui.applyTrackerPreset(hueMin, hueMax, satMin, satMax, valMin, valMax);
+    }
+
+    console.log(`Color picked: HSV(${hsv.h}, ${hsv.s}, ${hsv.v}) → range H[${hueMin}-${hueMax}] S[${satMin}-${satMax}] V[${valMin}-${valMax}]`);
   });
 
   // Fullscreen change

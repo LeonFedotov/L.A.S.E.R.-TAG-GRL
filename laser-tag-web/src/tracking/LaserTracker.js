@@ -64,6 +64,9 @@ export class LaserTracker {
       showDebug: true
     };
 
+    // ROI mask (limits detection to calibration quad area)
+    this.roiMask = null;
+
     // Performance tracking
     this.processTime = 0;
   }
@@ -260,6 +263,11 @@ export class LaserTracker {
     // Morphological operations to clean up noise
     cv.morphologyEx(this.maskMat, this.maskMat, cv.MORPH_OPEN, this.morphKernel);
     cv.morphologyEx(this.maskMat, this.maskMat, cv.MORPH_CLOSE, this.morphKernel);
+
+    // Apply ROI mask to limit detection to calibration area
+    if (this.roiMask && !this.roiMask.isDeleted()) {
+      cv.bitwise_and(this.maskMat, this.roiMask, this.maskMat);
+    }
 
     // Find contours
     const contours = new cv.MatVector();
@@ -722,6 +730,38 @@ export class LaserTracker {
   }
 
   /**
+   * Set ROI (Region of Interest) from calibration quad
+   * Only detections within this polygon will be considered
+   * @param {Array<{x: number, y: number}>} quad - 4 corner points in camera pixel coords
+   */
+  setROI(quad) {
+    if (!quad || quad.length !== 4 || !this.width || !this.height) {
+      this.roiMask = null;
+      return;
+    }
+
+    // Create a filled polygon mask from the quad
+    const mask = cv.Mat.zeros(this.height, this.width, cv.CV_8UC1);
+    const pts = cv.matFromArray(4, 1, cv.CV_32SC2, [
+      Math.round(quad[0].x), Math.round(quad[0].y),
+      Math.round(quad[1].x), Math.round(quad[1].y),
+      Math.round(quad[2].x), Math.round(quad[2].y),
+      Math.round(quad[3].x), Math.round(quad[3].y)
+    ]);
+    const contours = new cv.MatVector();
+    contours.push_back(pts);
+    cv.fillPoly(mask, contours, new cv.Scalar(255));
+    pts.delete();
+    contours.delete();
+
+    // Replace old mask
+    if (this.roiMask && !this.roiMask.isDeleted()) {
+      this.roiMask.delete();
+    }
+    this.roiMask = mask;
+  }
+
+  /**
    * Update tracking parameters
    * @param {Object} newParams - New parameter values
    */
@@ -740,6 +780,7 @@ export class LaserTracker {
     if (this.prevGray) this.prevGray.delete();
     if (this.currGray) this.currGray.delete();
     if (this.roiHist) this.roiHist.delete();
+    if (this.roiMask) this.roiMask.delete();
 
     this.srcMat = null;
     this.hsvMat = null;

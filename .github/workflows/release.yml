@@ -39,7 +39,7 @@ jobs:
           rm of.tar.gz
           # Install addons into OF directory (will be cached)
           cd of_v0.12.1_linux64_gcc6_release/addons
-          git clone --depth 1 https://github.com/LeonFedotov/ofxGuiExtended.git -b of-0.12-compatibility
+          git clone --depth 1 https://github.com/frauzufall/ofxGuiExtended.git
           git clone --depth 1 https://github.com/kylemcdonald/ofxCv.git
 
       - name: Install OF dependencies
@@ -170,7 +170,7 @@ jobs:
           rm of.tar.gz
           # Install addons into OF directory (will be cached)
           cd of_v0.12.1_osx_release/addons
-          git clone --depth 1 https://github.com/LeonFedotov/ofxGuiExtended.git -b of-0.12-compatibility
+          git clone --depth 1 https://github.com/frauzufall/ofxGuiExtended.git
           git clone --depth 1 https://github.com/kylemcdonald/ofxCv.git
 
       - name: Cache build objects
@@ -226,7 +226,7 @@ jobs:
           Remove-Item of.zip
           # Install addons into OF directory (will be cached)
           cd of_v0.12.1_vs_64_release/addons
-          git clone --depth 1 https://github.com/LeonFedotov/ofxGuiExtended.git -b of-0.12-compatibility
+          git clone --depth 1 https://github.com/frauzufall/ofxGuiExtended.git
           git clone --depth 1 https://github.com/kylemcdonald/ofxCv.git
 
       - name: Cache build objects

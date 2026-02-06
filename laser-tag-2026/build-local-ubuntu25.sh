@@ -67,7 +67,7 @@ echo "=== Step 2b: Setting up local_addons ==="
 if [ ! -f "local_addons/ofxGuiExtended/src/ofxGuiExtended.h" ]; then
     echo "Cloning ofxGuiExtended..."
     rm -rf local_addons/ofxGuiExtended
-    git clone --depth 1 https://github.com/LeonFedotov/ofxGuiExtended.git -b of-0.12-compatibility local_addons/ofxGuiExtended
+    git clone --depth 1 https://github.com/frauzufall/ofxGuiExtended.git local_addons/ofxGuiExtended
 else
     echo "ofxGuiExtended already present"
 fi

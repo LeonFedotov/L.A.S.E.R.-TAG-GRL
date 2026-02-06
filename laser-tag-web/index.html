@@ -146,6 +146,7 @@
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
+      cursor: crosshair;
     }
 
     /* Preview panels container - split view */
@@ -172,14 +173,48 @@
       justify-content: center;
     }
 
+    /* Split preview (warped camera + projection output side by side) */
+    .split-preview {
+      display: flex;
+      gap: 2px;
+    }
+
+    .preview-half {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .preview-label {
+      font-size: 9px;
+      color: #666;
+      text-transform: uppercase;
+      padding: 2px 4px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .canvas-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      min-height: 0;
+    }
+
     #projector-canvas,
-    #projector-clone-canvas {
+    #projector-clone-canvas,
+    #warped-camera-canvas {
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
     }
 
-    #projector-clone-canvas {
+    #projector-clone-canvas,
+    #warped-camera-canvas {
       background: #000;
     }
 
@@ -904,14 +939,25 @@
         <!-- Right column: Split Preview -->
         <div class="right-column">
           <div class="preview-container">
-            <!-- Projector clone - mirrors popup output -->
+            <!-- Preview split: warped camera + projection output -->
             <div class="panel preview-panel">
               <div class="panel-header">
-                <span>Projection Output</span>
+                <span>Preview</span>
                 <button id="projector-btn">Projection Window</button>
               </div>
-              <div class="panel-content">
-                <canvas id="projector-clone-canvas"></canvas>
+              <div class="panel-content split-preview">
+                <div class="preview-half">
+                  <div class="preview-label">Camera Warped</div>
+                  <div class="canvas-wrapper">
+                    <canvas id="warped-camera-canvas"></canvas>
+                  </div>
+                </div>
+                <div class="preview-half">
+                  <div class="preview-label">Projection Output</div>
+                  <div class="canvas-wrapper">
+                    <canvas id="projector-clone-canvas"></canvas>
+                  </div>
+                </div>
               </div>
             </div>
             <!-- Control canvas - interactive preview -->

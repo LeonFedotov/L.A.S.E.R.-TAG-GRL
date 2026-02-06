@@ -136,6 +136,14 @@ export class CameraCalibrationManager {
   }
 
   /**
+   * Get the source quad (camera calibration corners) in pixel coordinates
+   * @returns {Array<{x: number, y: number}>} 4 corner points
+   */
+  getSourceQuad() {
+    return this.warping.srcQuad;
+  }
+
+  /**
    * Save calibration to localStorage
    */
   save() {

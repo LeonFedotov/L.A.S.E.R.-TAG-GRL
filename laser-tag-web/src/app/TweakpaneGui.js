@@ -1247,6 +1247,28 @@ export class TweakpaneGui {
             pointer-events: none;
             z-index: 1000 !important;
           }
+          #fullscreen-hint {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 8px;
+            background: rgba(0,0,0,0.8);
+            color: #888;
+            font-family: sans-serif;
+            font-size: 12px;
+            text-align: center;
+            z-index: 2000;
+            cursor: pointer;
+          }
+          #fullscreen-hint:hover {
+            color: #fff;
+            background: rgba(0,0,0,0.9);
+          }
+          body:fullscreen #fullscreen-hint,
+          #canvas-container:fullscreen ~ #fullscreen-hint {
+            display: none;
+          }
           /* Ensure canvases fill fullscreen container and maintain z-index */
           #canvas-container:fullscreen #projector-canvas {
             width: 100%;
@@ -1265,6 +1287,22 @@ export class TweakpaneGui {
           <canvas id="projector-canvas"></canvas>
           <canvas id="overlay-canvas"></canvas>
         </div>
+        <div id="fullscreen-hint">Click here or press F to go fullscreen (hides address bar)</div>
+        <script>
+          // Fullscreen on hint click, double-click, or F key
+          function goFullscreen() {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+              document.exitFullscreen().catch(() => {});
+            }
+          }
+          document.getElementById('fullscreen-hint').addEventListener('click', goFullscreen);
+          document.addEventListener('dblclick', goFullscreen);
+          document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'f') goFullscreen();
+          });
+        </script>
         <script>
           // BroadcastChannel for reconnection after main window refresh
           const channel = new BroadcastChannel('laserTagProjectorChannel');
