@@ -97,7 +97,7 @@ function initMatrices(w, h) {
   srcMat = new cv.Mat(h, w, cv.CV_8UC4);
   hsvMat = new cv.Mat();
   maskMat = new cv.Mat();
-  morphKernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3));
+  morphKernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(5, 5));
 
   boundsNeedUpdate = true;
 }
@@ -214,27 +214,27 @@ function detectLaser(data, w, h) {
     const hierarchy = new cv.Mat();
     cv.findContours(maskMat, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-    // Find largest valid blob
-    let maxArea = 0;
-    let maxIdx = -1;
+    // Find brightest valid blob (brightness at centroid discriminates laser from ambient light)
+    let bestScore = 0;
+    let position = null;
 
     for (let i = 0; i < contours.size(); i++) {
       const area = cv.contourArea(contours.get(i));
-      if (area > params.minBlobArea && area < params.maxBlobArea && area > maxArea) {
-        maxArea = area;
-        maxIdx = i;
-      }
-    }
-
-    let position = null;
-
-    if (maxIdx >= 0) {
-      const moments = cv.moments(contours.get(maxIdx));
-      if (moments.m00 !== 0) {
-        position = {
-          x: moments.m10 / moments.m00,
-          y: moments.m01 / moments.m00
-        };
+      if (area > params.minBlobArea && area < params.maxBlobArea) {
+        const moments = cv.moments(contours.get(i));
+        if (moments.m00 !== 0) {
+          const cx = moments.m10 / moments.m00;
+          const cy = moments.m01 / moments.m00;
+          // Read V (brightness) channel at centroid — HSV is 3-channel, V is index 2
+          const vIdx = (Math.round(cy) * width + Math.round(cx)) * 3 + 2;
+          const brightness = hsvMat.data[vIdx] || 0;
+          // Primary: brightness, secondary: area (tiebreaker)
+          const score = brightness * 10000 + area;
+          if (score > bestScore) {
+            bestScore = score;
+            position = { x: cx, y: cy };
+          }
+        }
       }
     }
 

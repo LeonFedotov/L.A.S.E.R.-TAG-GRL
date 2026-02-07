@@ -96,7 +96,7 @@ export class LaserTracker {
     this.srcMat = new cv.Mat(height, width, cv.CV_8UC4);
     this.hsvMat = new cv.Mat();
     this.maskMat = new cv.Mat();
-    this.morphKernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3));
+    this.morphKernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(5, 5));
 
     // Initialize optical flow matrices
     this.prevGray = new cv.Mat();
@@ -171,7 +171,7 @@ export class LaserTracker {
           [1, 0, 0, 0],  // x
           [0, 0, 1, 0]   // y
         ],
-        covariance: [2, 2]  // Measurement noise — low = trust detections
+        covariance: [6, 6]  // Measurement noise — higher = more smoothing
       },
       dynamic: {
         dimension: 4,
@@ -280,36 +280,36 @@ export class LaserTracker {
     const hierarchy = new cv.Mat();
     cv.findContours(this.maskMat, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-    // Find largest blob
-    let maxArea = 0;
-    let maxContourIdx = -1;
+    // Find brightest valid blob (brightness at centroid discriminates laser from ambient light)
+    let bestScore = 0;
+    let bestContourIdx = -1;
+    let detectedPosition = null;
 
     for (let i = 0; i < contours.size(); i++) {
       const area = cv.contourArea(contours.get(i));
-      if (area > this.params.minBlobArea &&
-          area < this.params.maxBlobArea &&
-          area > maxArea) {
-        maxArea = area;
-        maxContourIdx = i;
+      if (area > this.params.minBlobArea && area < this.params.maxBlobArea) {
+        const moments = cv.moments(contours.get(i));
+        if (moments.m00 !== 0) {
+          const cx = moments.m10 / moments.m00;
+          const cy = moments.m01 / moments.m00;
+          // Read V (brightness) channel at centroid — HSV is 3-channel, V is index 2
+          const vIdx = (Math.round(cy) * this.width + Math.round(cx)) * 3 + 2;
+          const brightness = this.hsvMat.data[vIdx] || 0;
+          // Primary: brightness, secondary: area (tiebreaker)
+          const score = brightness * 10000 + area;
+          if (score > bestScore) {
+            bestScore = score;
+            bestContourIdx = i;
+            detectedPosition = { x: cx, y: cy };
+          }
+        }
       }
     }
 
-    let detectedPosition = null;
-
-    if (maxContourIdx >= 0) {
-      // Calculate centroid of largest contour
-      const moments = cv.moments(contours.get(maxContourIdx));
-      if (moments.m00 !== 0) {
-        const cx = moments.m10 / moments.m00;
-        const cy = moments.m01 / moments.m00;
-        detectedPosition = { x: cx, y: cy };
-
-        // Initialize CAMShift track window if enabled
-        if (this.params.useCamshift) {
-          const rect = cv.boundingRect(contours.get(maxContourIdx));
-          this.initCamshift(rect);
-        }
-      }
+    // Initialize CAMShift track window if enabled
+    if (bestContourIdx >= 0 && this.params.useCamshift) {
+      const rect = cv.boundingRect(contours.get(bestContourIdx));
+      this.initCamshift(rect);
     }
 
     // Clean up
