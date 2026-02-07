@@ -97,7 +97,7 @@ function initMatrices(w, h) {
   srcMat = new cv.Mat(h, w, cv.CV_8UC4);
   hsvMat = new cv.Mat();
   maskMat = new cv.Mat();
-  morphKernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(5, 5));
+  morphKernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3));
 
   boundsNeedUpdate = true;
 }

@@ -45,7 +45,7 @@ export class SettingsManager {
       satMax: 255,
       valMin: 200,
       valMax: 255,
-      smoothing: 0.5,
+      smoothing: 0.3,
       trackerPreset: 'Green Laser',
 
       // Advanced tracking options
