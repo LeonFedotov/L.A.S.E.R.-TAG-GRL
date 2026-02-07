@@ -39,7 +39,7 @@ const FRAGMENT_SHADER = `
     vec4 color = texture2D(u_texture, uv);
 
     if (u_showCheckerboard) {
-      float checker = mod(floor(v_texCoord.x * u_checkerSize) + floor(v_texCoord.y * u_checkerSize), 2.0);
+      float checker = mod(floor(uv.x * u_checkerSize) + floor(uv.y * u_checkerSize), 2.0);
       color = mix(color, vec4(checker, checker, checker, 1.0), 0.4);
     }
 
@@ -152,17 +152,23 @@ export class PerspectiveWarp {
     if (key === this._lastQuadKey) return;
     this._lastQuadKey = key;
 
-    // Forward: unit rect → quad
+    // Flip Y from canvas Y-down to WebGL Y-up (same as setInverseWarp)
+    const flippedQuad = normalizedQuad.map(p => ({
+      x: p.x,
+      y: 1.0 - p.y
+    }));
+
+    // Unit rect in Y-up screen coords: TL=(0,1), TR=(1,1), BR=(1,0), BL=(0,0)
     const unitRect = [
-      { x: 0, y: 0 },
-      { x: 1, y: 0 },
+      { x: 0, y: 1 },
       { x: 1, y: 1 },
-      { x: 0, y: 1 }
+      { x: 1, y: 0 },
+      { x: 0, y: 0 }
     ];
 
-    // Compute forward homography (rect → quad)
-    const H = Homography.computeHomography(unitRect, normalizedQuad);
-    // Shader needs inverse (quad → rect) to look up source texture coords
+    // Forward: unit rect → flipped quad (both in Y-up WebGL coords)
+    const H = Homography.computeHomography(unitRect, flippedQuad);
+    // Shader needs inverse to look up source texture coords
     this.homography = Homography.inverse(H);
   }
 
