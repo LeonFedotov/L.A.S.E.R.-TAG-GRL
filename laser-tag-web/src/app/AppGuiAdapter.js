@@ -413,6 +413,14 @@ export class AppGuiAdapter {
     this.app.projectorCalibration.setCheckerboard(show);
   }
 
+  /**
+   * Reload both calibrations from localStorage (after preset load)
+   */
+  reloadCalibration() {
+    this.app.cameraCalibration.warping.load();
+    this.app.projectorCalibration.load();
+  }
+
   // =========================================
   // Settings Interface
   // =========================================

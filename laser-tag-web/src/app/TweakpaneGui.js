@@ -1163,6 +1163,8 @@ export class TweakpaneGui {
       Object.assign(this.state, merged);
       this.currentPresetName = name;
       this.applyStateToApp();
+      // Reload calibration data (loadPreset writes to localStorage, reload picks it up)
+      this.adapter.reloadCalibration();
       this.pane.refresh();
       this.updateColorSelection();
       this.updateShadowColorSelection();
