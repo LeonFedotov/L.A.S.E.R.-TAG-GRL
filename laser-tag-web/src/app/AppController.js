@@ -51,6 +51,9 @@ export class AppController {
     this.mousePosition = null;
     this.mouseIsDown = false;
 
+    // Popup-driven projector resolution (null = use container size)
+    this._popupResolution = null;
+
     // Animation frame ID
     this.animationFrameId = null;
 
@@ -251,9 +254,13 @@ export class AppController {
     // Skip if container has no dimensions yet
     if (rect.width === 0 || rect.height === 0) return;
 
-    // Set projector canvas to fill container
-    this.projectorCanvas.width = rect.width;
-    this.projectorCanvas.height = rect.height;
+    // Projector resolution: use popup dimensions if available, otherwise container
+    const projW = this._popupResolution ? this._popupResolution.width : rect.width;
+    const projH = this._popupResolution ? this._popupResolution.height : rect.height;
+
+    // Set projector canvas to projector resolution
+    this.projectorCanvas.width = projW;
+    this.projectorCanvas.height = projH;
 
     // Set debug canvas to match camera aspect ratio
     // CSS sizes it to 320x240, but internal resolution should match camera
@@ -268,13 +275,13 @@ export class AppController {
     }
 
     // Update brush canvas sizes
-    this.brushManager.resize(rect.width, rect.height);
+    this.brushManager.resize(projW, projH);
 
     // Update calibration manager dimensions
-    this.cameraCalibration.updateProjectorDimensions(rect.width, rect.height);
+    this.cameraCalibration.updateProjectorDimensions(projW, projH);
 
     // Update rendering pipeline (handles post-processor resize)
-    this.renderingPipeline.resize(rect.width, rect.height);
+    this.renderingPipeline.resize(projW, projH);
 
     // Resize clone canvas to match projector canvas
     if (this.projectorCloneCanvas) {
@@ -833,6 +840,24 @@ export class AppController {
       s: Math.round(s * 255),
       v: Math.round(v * 255)
     };
+  }
+
+  /**
+   * Set projector resolution from popup window dimensions.
+   * When a popup is open, its screen is the actual projector output,
+   * so its dimensions should drive all resolution-dependent calculations.
+   * @param {number|null} width - Popup width in pixels (null to clear)
+   * @param {number|null} height - Popup height in pixels (null to clear)
+   */
+  setProjectorResolution(width, height) {
+    if (width && height) {
+      this._popupResolution = { width, height };
+      console.log(`Projector resolution set from popup: ${width}x${height}`);
+    } else {
+      this._popupResolution = null;
+      console.log('Projector resolution reset to container');
+    }
+    this.resizeCanvases();
   }
 
   /**
