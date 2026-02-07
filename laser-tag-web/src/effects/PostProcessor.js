@@ -2,6 +2,7 @@
  * PostProcessor - WebGL-based post-processing effects
  * Provides bloom/glow effects for the canvas output
  */
+import { createProgram as createShaderProgram } from '../utils/WebGLUtils.js';
 
 export class PostProcessor {
   constructor() {
@@ -175,46 +176,13 @@ export class PostProcessor {
     `;
 
     // Compile shaders
-    this.programs.passthrough = this.createProgram(vertexShaderSource, passthroughFragmentSource);
-    this.programs.threshold = this.createProgram(vertexShaderSource, thresholdFragmentSource);
-    this.programs.blurH = this.createProgram(vertexShaderSource, blurHFragmentSource);
-    this.programs.blurV = this.createProgram(vertexShaderSource, blurVFragmentSource);
-    this.programs.combine = this.createProgram(vertexShaderSource, combineFragmentSource);
+    this.programs.passthrough = createShaderProgram(gl, vertexShaderSource, passthroughFragmentSource, 'PostProcessor passthrough');
+    this.programs.threshold = createShaderProgram(gl, vertexShaderSource, thresholdFragmentSource, 'PostProcessor threshold');
+    this.programs.blurH = createShaderProgram(gl, vertexShaderSource, blurHFragmentSource, 'PostProcessor blurH');
+    this.programs.blurV = createShaderProgram(gl, vertexShaderSource, blurVFragmentSource, 'PostProcessor blurV');
+    this.programs.combine = createShaderProgram(gl, vertexShaderSource, combineFragmentSource, 'PostProcessor combine');
   }
 
-  /**
-   * Create a shader program
-   */
-  createProgram(vertexSource, fragmentSource) {
-    const gl = this.gl;
-
-    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vertexShader, vertexSource);
-    gl.compileShader(vertexShader);
-    if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-      console.error('Vertex shader error:', gl.getShaderInfoLog(vertexShader));
-      return null;
-    }
-
-    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fragmentShader, fragmentSource);
-    gl.compileShader(fragmentShader);
-    if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-      console.error('Fragment shader error:', gl.getShaderInfoLog(fragmentShader));
-      return null;
-    }
-
-    const program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error('Program link error:', gl.getProgramInfoLog(program));
-      return null;
-    }
-
-    return program;
-  }
 
   /**
    * Create framebuffers for multi-pass rendering

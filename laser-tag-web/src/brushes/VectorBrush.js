@@ -9,6 +9,7 @@
 import { BaseBrush } from './BaseBrush.js';
 import { DripManager } from './DripManager.js';
 import { getStrategy } from './modes/index.js';
+import { hexToRgb } from '../utils/ColorUtils.js';
 
 export class VectorBrush extends BaseBrush {
   constructor() {
@@ -192,16 +193,7 @@ export class VectorBrush extends BaseBrush {
   spawnDrip(x, y, colorOverride = null) {
     let dripColor;
     if (colorOverride) {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colorOverride);
-      if (result) {
-        dripColor = {
-          r: parseInt(result[1], 16),
-          g: parseInt(result[2], 16),
-          b: parseInt(result[3], 16)
-        };
-      } else {
-        dripColor = { ...this.params.color };
-      }
+      dripColor = hexToRgb(colorOverride) || { ...this.params.color };
     } else {
       dripColor = { ...this.params.color };
     }
@@ -241,12 +233,13 @@ export class VectorBrush extends BaseBrush {
   }
 
   /**
-   * Render frame - update drips and redraw if needed
+   * Render frame - update drips incrementally (no full redraw)
    */
   render() {
     if (this.params.dripsEnabled && this.dripManager.hasActiveDrips()) {
       this.dripManager.update();
-      this.redraw();
+      // Draw only new drip trail segments since last frame
+      this.dripManager.drawNewTrails(this.ctx);
     }
   }
 
@@ -288,6 +281,9 @@ export class VectorBrush extends BaseBrush {
 
     // Draw orphan drip trails
     this.dripManager.drawTrailsForStroke(this.ctx, null, this.strokes);
+
+    // Sync drawn count so incremental render() doesn't re-draw trails
+    this.dripManager.resetDrawnCount();
   }
 
   /**

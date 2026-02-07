@@ -6,6 +6,7 @@
  * the physical projection surface (keystoning, irregular surfaces, etc.)
  */
 import { Homography } from '../utils/Homography.js';
+import { storageSave, storageLoad } from '../utils/StorageUtils.js';
 
 const STORAGE_KEY = 'laserTag_projectorQuad';
 
@@ -293,26 +294,17 @@ export class ProjectorCalibrationManager {
    * Save calibration to localStorage
    */
   save() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.quad));
-      console.log('Projector calibration saved');
-    } catch (e) {
-      console.error('Failed to save projector calibration:', e);
-    }
+    storageSave(STORAGE_KEY, this.quad, 'Projector calibration');
   }
 
   /**
    * Load calibration from localStorage
    */
   load() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        this.quad = JSON.parse(saved);
-        console.log('Projector calibration loaded');
-      }
-    } catch (e) {
-      console.error('Failed to load projector calibration:', e);
+    const saved = storageLoad(STORAGE_KEY);
+    if (saved) {
+      this.quad = saved;
+      console.log('Projector calibration loaded');
     }
   }
 

@@ -73,41 +73,6 @@ export class AppGuiAdapter {
   // =========================================
 
   /**
-   * Get camera instance for device enumeration
-   * @returns {Camera|null}
-   */
-  getCamera() {
-    return this.app.camera;
-  }
-
-  /**
-   * Check if camera is ready
-   * @returns {boolean}
-   */
-  isCameraReady() {
-    return this.app.camera && this.app.camera.isReady;
-  }
-
-  /**
-   * Get available camera devices
-   * @returns {Promise<Array>}
-   */
-  async getCameraDevices() {
-    if (!this.app.camera) return [];
-    return this.app.camera.getDevices();
-  }
-
-  /**
-   * Switch camera device
-   * @param {string} deviceId
-   */
-  async switchCamera(deviceId) {
-    if (this.app.camera) {
-      await this.app.camera.switchDevice(deviceId);
-    }
-  }
-
-  /**
    * Set camera horizontal flip
    * @param {boolean} flip
    */
@@ -135,18 +100,6 @@ export class AppGuiAdapter {
     if (this.app.camera) {
       this.app.camera.setRotation(degrees);
     }
-  }
-
-  /**
-   * Get camera dimensions
-   * @returns {{width: number, height: number}|null}
-   */
-  getCameraDimensions() {
-    if (!this.app.camera) return null;
-    return {
-      width: this.app.camera.width,
-      height: this.app.camera.height
-    };
   }
 
   /**
@@ -249,23 +202,6 @@ export class AppGuiAdapter {
   // =========================================
 
   /**
-   * Check if post-processor is available
-   * @returns {boolean}
-   */
-  hasPostProcessor() {
-    return !!this.app.postProcessor;
-  }
-
-  /**
-   * Get post-processor for direct param access
-   * Note: Consider adding specific getter/setters for params
-   * @returns {PostProcessor|null}
-   */
-  getPostProcessor() {
-    return this.app.postProcessor;
-  }
-
-  /**
    * Set bloom enabled
    * @param {boolean} enabled
    */
@@ -273,14 +209,6 @@ export class AppGuiAdapter {
     if (this.app.postProcessor) {
       this.app.postProcessor.params.bloomEnabled = enabled;
     }
-  }
-
-  /**
-   * Get bloom enabled state
-   * @returns {boolean}
-   */
-  isBloomEnabled() {
-    return this.app.postProcessor?.params?.bloomEnabled ?? false;
   }
 
   /**
@@ -313,21 +241,6 @@ export class AppGuiAdapter {
    */
   toggleCalibration() {
     return this.app.toggleCalibration();
-  }
-
-  /**
-   * Check if camera calibration is active
-   * @returns {boolean}
-   */
-  isCalibrating() {
-    return this.app.isCalibrating;
-  }
-
-  /**
-   * Save camera calibration
-   */
-  saveCalibration() {
-    this.app.saveCalibration();
   }
 
   /**
@@ -392,13 +305,6 @@ export class AppGuiAdapter {
   }
 
   /**
-   * Save projector calibration
-   */
-  saveProjectorCalibration() {
-    this.app.saveProjectorCalibration();
-  }
-
-  /**
    * Reset projector calibration
    */
   resetProjectorCalibration() {
@@ -426,44 +332,11 @@ export class AppGuiAdapter {
   // =========================================
 
   /**
-   * Get settings object
-   * Note: Consider adding specific getter/setters
-   * @returns {Object}
-   */
-  getSettings() {
-    return this.app.settings;
-  }
-
-  /**
    * Set background color
    * @param {string} hexColor
    */
   setBackgroundColor(hexColor) {
     this.app.settings.backgroundColor = hexColor;
-  }
-
-  /**
-   * Get background color
-   * @returns {string}
-   */
-  getBackgroundColor() {
-    return this.app.settings.backgroundColor;
-  }
-
-  /**
-   * Set debug view visibility
-   * @param {boolean} show
-   */
-  setShowDebug(show) {
-    this.app.settings.showDebug = show;
-  }
-
-  /**
-   * Get debug view visibility
-   * @returns {boolean}
-   */
-  isShowDebug() {
-    return this.app.settings.showDebug;
   }
 
   /**
@@ -476,32 +349,6 @@ export class AppGuiAdapter {
     if (zone.y !== undefined) this.app.settings.eraseZoneY = zone.y;
     if (zone.width !== undefined) this.app.settings.eraseZoneWidth = zone.width;
     if (zone.height !== undefined) this.app.settings.eraseZoneHeight = zone.height;
-  }
-
-  /**
-   * Get erase zone settings
-   * @returns {Object}
-   */
-  getEraseZone() {
-    return {
-      enabled: this.app.settings.eraseZoneEnabled,
-      x: this.app.settings.eraseZoneX,
-      y: this.app.settings.eraseZoneY,
-      width: this.app.settings.eraseZoneWidth,
-      height: this.app.settings.eraseZoneHeight
-    };
-  }
-
-  // =========================================
-  // Mouse Input Interface
-  // =========================================
-
-  /**
-   * Get mouse input mode state
-   * @returns {boolean}
-   */
-  isMouseInputEnabled() {
-    return this.app.useMouseInput;
   }
 
   /**
@@ -530,22 +377,6 @@ export class AppGuiAdapter {
   // =========================================
 
   /**
-   * Get debug canvas element
-   * @returns {HTMLCanvasElement}
-   */
-  getDebugCanvas() {
-    return this.app.debugCanvas;
-  }
-
-  /**
-   * Get capture canvas (internal camera frame canvas)
-   * @returns {HTMLCanvasElement}
-   */
-  getCaptureCanvas() {
-    return this.app.captureCanvas;
-  }
-
-  /**
    * Get projector canvas element
    * @returns {HTMLCanvasElement}
    */
@@ -556,14 +387,6 @@ export class AppGuiAdapter {
   // =========================================
   // Projector Popup Interface
   // =========================================
-
-  /**
-   * Get projector popup reference
-   * @returns {Object|null}
-   */
-  getProjectorPopup() {
-    return this.app.projectorPopup;
-  }
 
   /**
    * Set projector popup reference

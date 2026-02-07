@@ -3,6 +3,8 @@
  *
  * Each mode defines how strokes are rendered (smooth, glow, basic, dope, arrow, arrowFat)
  */
+import { hexToRgba } from '../../utils/ColorUtils.js';
+
 export class BrushModeStrategy {
   constructor(name) {
     this.name = name;
@@ -74,18 +76,26 @@ export class BrushModeStrategy {
 
   /**
    * Utility: Convert hex color to rgba string
-   * @param {string} hex
-   * @param {number} alpha
-   * @returns {string}
+   * Delegates to shared ColorUtils
    */
   hexToRgba(hex, alpha = 1) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (result) {
-      const r = parseInt(result[1], 16);
-      const g = parseInt(result[2], 16);
-      const b = parseInt(result[3], 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-    return `rgba(0, 0, 0, ${alpha})`;
+    return hexToRgba(hex, alpha);
+  }
+
+  /**
+   * Calculate direction and perpendicular normal between two points
+   * @param {Object} p0 - Start point {x, y}
+   * @param {Object} p1 - End point {x, y}
+   * @returns {{dx: number, dy: number, len: number, nx: number, ny: number}|null}
+   */
+  static direction(p0, p1) {
+    const dx = p1.x - p0.x;
+    const dy = p1.y - p0.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 0.1) return null;
+    const nrmX = dx / len;
+    const nrmY = dy / len;
+    // Perpendicular: (-dy, dx) normalized
+    return { dx, dy, len, nrmX, nrmY, nx: -nrmY, ny: nrmX };
   }
 }

@@ -9,6 +9,9 @@ import { BrushModeStrategy } from './BrushModeStrategy.js';
 export class RibbonModeStrategy extends BrushModeStrategy {
   constructor(name) {
     super(name);
+    // Pooled arrays for calculateRibbonPoints to avoid per-frame allocation
+    this._topPool = [];
+    this._bottomPool = [];
   }
 
   /**
@@ -37,8 +40,10 @@ export class RibbonModeStrategy extends BrushModeStrategy {
    * @returns {{topPoints: Array, bottomPoints: Array}}
    */
   calculateRibbonPoints(points, offset, params) {
-    const topPoints = [];
-    const bottomPoints = [];
+    const top = this._topPool;
+    const bottom = this._bottomPool;
+    top.length = points.length;
+    bottom.length = points.length;
 
     for (let i = 0; i < points.length; i++) {
       const p = points[i];
@@ -47,37 +52,23 @@ export class RibbonModeStrategy extends BrushModeStrategy {
       // Calculate normal from surrounding points
       let nrmX = 0, nrmY = 1;
       if (i < points.length - 1) {
-        const next = points[i + 1];
-        const dx = next.x - p.x;
-        const dy = next.y - p.y;
-        const len = Math.sqrt(dx * dx + dy * dy);
-        if (len > 0.1) {
-          nrmX = dx / len;
-          nrmY = dy / len;
-        }
+        const dir = BrushModeStrategy.direction(p, points[i + 1]);
+        if (dir) { nrmX = dir.nrmX; nrmY = dir.nrmY; }
       } else if (i > 0) {
-        const prev = points[i - 1];
-        const dx = p.x - prev.x;
-        const dy = p.y - prev.y;
-        const len = Math.sqrt(dx * dx + dy * dy);
-        if (len > 0.1) {
-          nrmX = dx / len;
-          nrmY = dy / len;
-        }
+        const dir = BrushModeStrategy.direction(points[i - 1], p);
+        if (dir) { nrmX = dir.nrmX; nrmY = dir.nrmY; }
       }
 
       // Perpendicular using C++ pattern: (nrm_y, -nrm_x)
-      topPoints.push({
-        x: p.x - offset + nrmY * w / 2,
-        y: p.y + offset - nrmX * w / 2
-      });
-      bottomPoints.push({
-        x: p.x - offset - nrmY * w / 2,
-        y: p.y + offset + nrmX * w / 2
-      });
+      // Reuse or create point objects
+      if (!top[i]) { top[i] = { x: 0, y: 0 }; bottom[i] = { x: 0, y: 0 }; }
+      top[i].x = p.x - offset + nrmY * w / 2;
+      top[i].y = p.y + offset - nrmX * w / 2;
+      bottom[i].x = p.x - offset - nrmY * w / 2;
+      bottom[i].y = p.y + offset + nrmX * w / 2;
     }
 
-    return { topPoints, bottomPoints };
+    return { topPoints: top, bottomPoints: bottom };
   }
 
   /**
@@ -142,13 +133,11 @@ export class RibbonModeStrategy extends BrushModeStrategy {
     const w1 = p1.width || params.brushWidth;
     const offset = params.shadowOffset;
 
-    const dx = p1.x - p0.x;
-    const dy = p1.y - p0.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 0.1) return;
+    const dir = BrushModeStrategy.direction(p0, p1);
+    if (!dir) return;
 
-    const nrmX = dx / len;
-    const nrmY = dy / len;
+    const nrmX = dir.nrmX;
+    const nrmY = dir.nrmY;
 
     // Draw shadow quad
     ctx.beginPath();
@@ -203,13 +192,11 @@ export class ArrowModeStrategy extends RibbonModeStrategy {
     const w = lastPt.width || params.brushWidth;
     const offset = params.shadowOffset;
 
-    const dx = lastPt.x - prevPt.x;
-    const dy = lastPt.y - prevPt.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 0.1) return;
+    const dir = BrushModeStrategy.direction(prevPt, lastPt);
+    if (!dir) return;
 
-    const nrmX = dx / len;
-    const nrmY = dy / len;
+    const nrmX = dir.nrmX;
+    const nrmY = dir.nrmY;
 
     // Shadow offset applied
     const sx = lastPt.x - offset;
@@ -243,13 +230,11 @@ export class ArrowModeStrategy extends RibbonModeStrategy {
     const w = lastPt.width || params.brushWidth;
     const color = stroke.color;
 
-    const dx = lastPt.x - prevPt.x;
-    const dy = lastPt.y - prevPt.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 0.1) return;
+    const dir = BrushModeStrategy.direction(prevPt, lastPt);
+    if (!dir) return;
 
-    const nrmX = dx / len;
-    const nrmY = dy / len;
+    const nrmX = dir.nrmX;
+    const nrmY = dir.nrmY;
 
     const tipX = lastPt.x + nrmX * w * 2;
     const tipY = lastPt.y + nrmY * w * 2;
