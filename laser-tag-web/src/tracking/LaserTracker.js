@@ -51,9 +51,9 @@ export class LaserTracker {
       maxBlobArea: 5000,
 
       // Tracking parameters
-      smoothing: 0.5,           // Position smoothing (0-1)
-      newStrokeThreshold: 10,   // Frames without detection to trigger new stroke
-      maxVelocity: 100,         // Max pixels per frame (filters noise)
+      smoothing: 0.3,           // Position smoothing (0-1, only used when Kalman is off)
+      newStrokeThreshold: 5,    // Frames without detection to trigger new stroke
+      maxVelocity: 500,         // Max pixels per frame (filters noise)
 
       // Advanced tracking options
       useKalman: true,          // Use Kalman filter for smoothing
@@ -96,7 +96,7 @@ export class LaserTracker {
     this.srcMat = new cv.Mat(height, width, cv.CV_8UC4);
     this.hsvMat = new cv.Mat();
     this.maskMat = new cv.Mat();
-    this.morphKernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(5, 5));
+    this.morphKernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3));
 
     // Initialize optical flow matrices
     this.prevGray = new cv.Mat();
@@ -158,6 +158,12 @@ export class LaserTracker {
   initKalmanFilter() {
     // State: [x, vx, y, vy] - position and velocity in x and y
     // Observation: [x, y] - we only observe position
+    //
+    // Tuning notes:
+    // - Measurement covariance (observation): lower = trust detections more, less smoothing
+    //   High values (10+) cause visible lag/jitter as filter fights the observations.
+    // - Process covariance (dynamic): higher = allow faster changes, follow quick movements
+    //   Low values (1) make the filter sluggish on fast motions.
     this.kalmanFilter = new KalmanFilter({
       observation: {
         dimension: 2,
@@ -165,7 +171,7 @@ export class LaserTracker {
           [1, 0, 0, 0],  // x
           [0, 0, 1, 0]   // y
         ],
-        covariance: [10, 10]  // Measurement noise
+        covariance: [2, 2]  // Measurement noise — low = trust detections
       },
       dynamic: {
         dimension: 4,
@@ -175,7 +181,7 @@ export class LaserTracker {
           [0, 0, 1, 1],  // y = y + vy
           [0, 0, 0, 1]   // vy = vy
         ],
-        covariance: [1, 1, 1, 1]  // Process noise
+        covariance: [4, 10, 4, 10]  // Process noise — high velocity noise allows fast tracking
       }
     });
 

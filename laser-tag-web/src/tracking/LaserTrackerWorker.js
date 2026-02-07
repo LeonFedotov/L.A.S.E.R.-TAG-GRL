@@ -47,9 +47,9 @@ export class LaserTrackerWorker {
       valMax: 255,
       minBlobArea: 10,
       maxBlobArea: 5000,
-      smoothing: 0.5,
-      newStrokeThreshold: 10,
-      maxVelocity: 100,
+      smoothing: 0.3,
+      newStrokeThreshold: 5,
+      maxVelocity: 500,
       useKalman: true,
       useOpticalFlow: true,
       useCamshift: false,
@@ -143,7 +143,7 @@ export class LaserTrackerWorker {
           [1, 0, 0, 0],
           [0, 0, 1, 0]
         ],
-        covariance: [10, 10]
+        covariance: [2, 2]  // Low = trust detections, less lag
       },
       dynamic: {
         dimension: 4,
@@ -153,7 +153,7 @@ export class LaserTrackerWorker {
           [0, 0, 1, 1],
           [0, 0, 0, 1]
         ],
-        covariance: [1, 1, 1, 1]
+        covariance: [4, 10, 4, 10]  // High velocity noise allows fast tracking
       }
     });
     this.kalmanState = null;

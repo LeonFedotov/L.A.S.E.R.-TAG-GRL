@@ -26,8 +26,8 @@ vi.mock('./LaserTracker.js', () => ({
       satMin: 50, satMax: 255,
       valMin: 200, valMax: 255,
       minBlobArea: 10, maxBlobArea: 5000,
-      smoothing: 0.5, newStrokeThreshold: 10,
-      maxVelocity: 100, useKalman: true,
+      smoothing: 0.3, newStrokeThreshold: 5,
+      maxVelocity: 500, useKalman: true,
       useOpticalFlow: true, useCamshift: false,
       showDebug: true
     },
