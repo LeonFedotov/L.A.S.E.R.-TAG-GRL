@@ -83,6 +83,14 @@ export class LaserTrackerWorker {
    * @param {string} [options.opencvUrl] - URL to opencv.js (default: '/lib/opencv.js')
    */
   init(width, height, options = {}) {
+    // Terminate previous worker if re-initializing (e.g., after video source switch)
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null;
+    }
+    this.workerReady = false;
+    this._workerBusy = false;
+
     this.width = width;
     this.height = height;
     if (options.opencvUrl) this.opencvUrl = options.opencvUrl;
@@ -143,7 +151,7 @@ export class LaserTrackerWorker {
           [1, 0, 0, 0],
           [0, 0, 1, 0]
         ],
-        covariance: [2, 2]  // Low = trust detections, less lag
+        covariance: [6, 6]  // Higher = more smoothing, reduces jitter
       },
       dynamic: {
         dimension: 4,

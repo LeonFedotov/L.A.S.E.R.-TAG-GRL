@@ -682,6 +682,34 @@ export class TweakpaneGui {
     const folder = this.pane.addFolder({ title: 'Camera', expanded: true });
     this.folders.camera = folder;
 
+    // Input source selector (camera vs video file)
+    this.state.inputSource = 'camera';
+    folder.addBinding(this.state, 'inputSource', {
+      label: 'Source',
+      options: {
+        'Live Camera': 'camera',
+        'Test Video (visible)': 'videos/lasertag_test.mp4',
+        'Test Video (IR)': 'videos/lasertag-IR-trackLaser.mp4'
+      }
+    }).on('change', async (ev) => {
+      try {
+        if (ev.value === 'camera') {
+          await this.adapter.switchToCamera(this.state.selectedCamera);
+        } else {
+          await this.adapter.switchToVideoFile(ev.value);
+        }
+        // Reset calibration — video has different resolution/framing than camera
+        this.adapter.resetCalibration();
+        // Also reset projector calibration when switching to video (no physical projector)
+        if (ev.value !== 'camera') {
+          this.adapter.resetProjectorCalibration();
+        }
+        console.log('Input source changed to:', ev.value);
+      } catch (e) {
+        console.error('Failed to switch input source:', e);
+      }
+    });
+
     // Camera selection dropdown
     try {
       const cameras = await this.adapter.getAvailableCameras();
@@ -777,6 +805,7 @@ export class TweakpaneGui {
         'Green Laser': 'Green Laser',
         'Red Laser': 'Red Laser',
         'Blue Laser': 'Blue Laser',
+        'Green Laser (dim)': 'Green Laser (dim)',
         'White/Bright': 'White/Bright',
         'Red Object': 'Red Object',
         'Green Object': 'Green Object',
@@ -784,11 +813,13 @@ export class TweakpaneGui {
       }
     }).on('change', (ev) => {
       // Laser presets: high brightness (Val Min 200+) for laser pointers
+      // Dim laser: lower brightness for projected/distant surfaces (Val Min 60+)
       // Object presets: lower brightness (Val Min 80+) for colored objects
       const presets = {
         'Green Laser': [35, 85, 50, 255, 200, 255],
         'Red Laser': [0, 15, 100, 255, 200, 255],
         'Blue Laser': [100, 130, 100, 255, 200, 255],
+        'Green Laser (dim)': [35, 85, 50, 255, 80, 255],
         'White/Bright': [0, 180, 0, 50, 240, 255],
         'Red Object': [0, 10, 120, 255, 80, 255],
         'Green Object': [35, 85, 50, 255, 80, 255],

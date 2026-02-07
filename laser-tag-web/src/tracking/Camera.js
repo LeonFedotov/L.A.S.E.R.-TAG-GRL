@@ -11,6 +11,7 @@ export class Camera {
     this.flipH = false;   // Flip horizontally
     this.flipV = false;   // Flip vertically
     this.rotation = 0;    // Rotation in degrees (0, 90, 180, 270)
+    this.isVideoFile = false;  // True when playing a video file instead of camera
   }
 
   /**
@@ -222,14 +223,62 @@ export class Camera {
   }
 
   /**
-   * Stop camera stream
+   * Initialize from a video file URL instead of a webcam
+   * @param {HTMLVideoElement} videoElement - Video element to attach to
+   * @param {string} url - Video file URL
+   * @returns {Promise<void>}
+   */
+  async initFromVideo(videoElement, url) {
+    // Stop any existing stream
+    this.stop();
+
+    this.video = videoElement;
+    this.video.srcObject = null;
+    this.video.src = url;
+    this.video.loop = true;
+    this.video.muted = true;
+
+    await new Promise((resolve, reject) => {
+      this.video.onloadedmetadata = () => {
+        this.video.play()
+          .then(resolve)
+          .catch(reject);
+      };
+      this.video.onerror = () => reject(new Error(`Failed to load video: ${url}`));
+    });
+
+    // Upscale small videos so laser dots are large enough for contour detection
+    const nativeW = this.video.videoWidth;
+    const nativeH = this.video.videoHeight;
+    const MIN_DIM = 640;
+    if (nativeW < MIN_DIM && nativeH < MIN_DIM) {
+      const scale = Math.ceil(MIN_DIM / Math.max(nativeW, nativeH));
+      this.width = nativeW * scale;
+      this.height = nativeH * scale;
+    } else {
+      this.width = nativeW;
+      this.height = nativeH;
+    }
+    this.isReady = true;
+    this.isVideoFile = true;
+
+    console.log(`Video file loaded: ${url} (native ${nativeW}x${nativeH}, output ${this.width}x${this.height})`);
+  }
+
+  /**
+   * Stop camera stream or video playback
    */
   stop() {
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
       this.stream = null;
-      this.isReady = false;
     }
+    if (this.video && this.isVideoFile) {
+      this.video.pause();
+      this.video.src = '';
+      this.isVideoFile = false;
+    }
+    this.isReady = false;
   }
 
   /**

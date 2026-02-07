@@ -162,8 +162,43 @@ export class AppGuiAdapter {
     if (!this.app.camera) return;
 
     await this.app.camera.switchCamera(deviceId);
+    this._updateCameraCanvases();
+  }
 
-    // Update canvases to match camera dimensions
+  /**
+   * Switch to a video file input
+   * @param {string} url - Video file URL
+   */
+  async switchToVideoFile(url) {
+    if (!this.app.camera) return;
+
+    await this.app.camera.initFromVideo(this.app.videoElement, url);
+    this._updateCameraCanvases();
+  }
+
+  /**
+   * Switch back to live camera input
+   * @param {string} [deviceId] - Optional device ID
+   */
+  async switchToCamera(deviceId) {
+    if (!this.app.camera) return;
+
+    this.app.camera.stop();
+    await this.app.camera.init(this.app.videoElement, {
+      width: 640,
+      height: 480,
+      frameRate: 60
+    });
+    if (deviceId) {
+      await this.app.camera.switchCamera(deviceId);
+    }
+    this._updateCameraCanvases();
+  }
+
+  /**
+   * Update canvases/tracker after camera dimension change
+   */
+  _updateCameraCanvases() {
     const width = this.app.camera.width;
     const height = this.app.camera.height;
 
@@ -175,6 +210,10 @@ export class AppGuiAdapter {
       this.app.captureCanvas.width = width;
       this.app.captureCanvas.height = height;
     }
+    if (this.app.tracker) {
+      this.app.tracker.init(width, height);
+    }
+    this.app._roiNeedsUpdate = true;
   }
 
   // =========================================
