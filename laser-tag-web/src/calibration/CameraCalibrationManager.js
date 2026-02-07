@@ -20,8 +20,10 @@ export class CameraCalibrationManager {
    */
   init(cameraWidth, cameraHeight, projectorWidth, projectorHeight) {
     this.warping.setSourceDimensions(cameraWidth, cameraHeight);
+    this.warping.load(); // Restore saved srcQuad (camera calibration points)
+    // Always override dstQuad with current projector dimensions —
+    // load() may restore an outdated dstQuad from a different window size
     this.warping.setDestinationDimensions(projectorWidth, projectorHeight);
-    this.warping.load();
   }
 
   /**
@@ -158,6 +160,7 @@ export class CameraCalibrationManager {
    */
   reset(cameraWidth, cameraHeight) {
     this.warping.setSourceDimensions(cameraWidth, cameraHeight);
+    this.warping.save();
     console.log('Camera calibration reset');
   }
 

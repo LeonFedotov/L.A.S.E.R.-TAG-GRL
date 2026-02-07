@@ -36,10 +36,9 @@ export class AppController {
     this.captureCanvas = null;
     this.captureCtx = null;
 
-    // Tracking readback canvas (for warped tracking input)
-    this._trackingCanvas = null;
-    this._trackingCtx = null;
-    this._trackingWarped = false;
+    // ROI tracking state
+    this._roiInitialized = false;
+    this._roiNeedsUpdate = false;
 
     // State
     this.isRunning = false;
@@ -116,12 +115,6 @@ export class AppController {
 
     console.log(`Camera resolution: ${this.camera.width}x${this.camera.height}`);
 
-    // Create offscreen canvas for reading back warped camera frame (for tracking)
-    this._trackingCanvas = document.createElement('canvas');
-    this._trackingCanvas.width = this.camera.width;
-    this._trackingCanvas.height = this.camera.height;
-    this._trackingCtx = this._trackingCanvas.getContext('2d', { willReadFrequently: true });
-
     // Initialize tracker
     this.tracker.init(this.camera.width, this.camera.height);
 
@@ -132,7 +125,10 @@ export class AppController {
       this.projectorCanvas.width,
       this.projectorCanvas.height
     );
-    this.cameraCalibration.onStateChange = (key, value) => this.notifyStateChange(key, value);
+    this.cameraCalibration.onStateChange = (key, value) => {
+      this._roiNeedsUpdate = true;
+      this.notifyStateChange(key, value);
+    };
     this.projectorCalibration.onStateChange = (key, value) => this.notifyStateChange(key, value);
 
     // Initialize brush manager
@@ -186,8 +182,9 @@ export class AppController {
       this.warpedCameraCanvas = elements.warpedCameraCanvas;
     }
 
-    // Give rendering pipeline access to debug canvas for warped camera preview
+    // Give rendering pipeline access to debug canvas and capture canvas
     this.renderingPipeline.setDebugCanvas(this.debugCanvas);
+    this.renderingPipeline.setCaptureCanvas(this.captureCanvas);
 
     console.log('AppController initialized');
     return true;
@@ -364,45 +361,18 @@ export class AppController {
     const imageData = this.camera.getFrame(this.captureCtx);
     if (!imageData) return;
 
-    // Determine if we can track on the warped (perspective-corrected) camera view.
-    // Benefits: smaller effective area, no ROI mask needed, positions map directly to projector.
-    // Only use warped input when calibration quad exists and we're not actively calibrating.
+    // Always track on the raw camera frame for consistent detection.
+    // The calibration transform handles coordinate mapping in updatePainting().
+    // Using the raw frame avoids quality loss from WebGL readback and gives
+    // identical tracking regardless of calibration toggle state.
     const srcQuad = this.cameraCalibration.getSourceQuad();
-    const hasCalibration = srcQuad && srcQuad.length === 4 && !this.cameraCalibration.isCalibrating;
-    const cameraWarp = this.renderingPipeline.cameraWarp;
 
-    if (hasCalibration && cameraWarp && this.warpedCameraCanvas) {
-      // Render camera through calibration warp (quad → rectangle)
-      // Use captureCanvas as source (has fresh camera frame from getFrame above)
-      cameraWarp.setInverseWarp(srcQuad, this.camera.width, this.camera.height);
-      cameraWarp.setCheckerboard(false);
-      cameraWarp.render(this.captureCanvas);
-
-      // Read back warped result to 2D canvas for tracker
-      this._trackingCtx.drawImage(this.warpedCameraCanvas, 0, 0,
-        this._trackingCanvas.width, this._trackingCanvas.height);
-      const warpedData = this._trackingCtx.getImageData(
-        0, 0, this._trackingCanvas.width, this._trackingCanvas.height);
-
-      // Clear ROI once when entering warped mode — warp already crops to calibration area
-      if (!this._trackingWarped) {
-        this.tracker.setROI(null);
-      }
-      this.tracker.processFrame(warpedData);
-      this._trackingWarped = true;
-    } else {
-      // No calibration or actively calibrating — track on raw frame with ROI mask
-      if (this.cameraCalibration.isCalibrating || !this._roiInitialized) {
-        this.tracker.setROI(srcQuad);
-        this._roiInitialized = true;
-        this._roiNeedsUpdate = true;
-      } else if (this._roiNeedsUpdate) {
-        this.tracker.setROI(srcQuad);
-        this._roiNeedsUpdate = false;
-      }
-      this.tracker.processFrame(imageData);
-      this._trackingWarped = false;
+    if (!this._roiInitialized || this._roiNeedsUpdate) {
+      this.tracker.setROI(srcQuad);
+      this._roiInitialized = true;
+      this._roiNeedsUpdate = false;
     }
+    this.tracker.processFrame(imageData);
 
     // Check erase zone if enabled and tracking
     if (this.settings.eraseZoneEnabled && this.tracker.isTracking && this.tracker.currentPosition) {
@@ -491,35 +461,27 @@ export class AppController {
       return;
     }
 
-    // Get normalized position from tracker
-    const normPos = this.tracker.getNormalizedPosition();
-    if (!normPos) return;
+    // Get position from tracker (always in raw camera pixel space)
+    if (!this.tracker.currentPosition) return;
 
-    let finalPos;
-
-    if (this._trackingWarped) {
-      // Warped input: positions are already in calibrated space (quad → rect)
-      // Normalized position maps directly to projector coordinates
-      finalPos = { x: normPos.x, y: normPos.y };
-    } else {
-      // Raw input: positions are in camera pixel space, need calibration transform
-      if (!this.cameraCalibration.isInsideCalibrationArea(
-        this.tracker.currentPosition.x,
-        this.tracker.currentPosition.y
-      )) {
-        return;
-      }
-
-      const transformed = this.cameraCalibration.transform(
-        this.tracker.currentPosition.x,
-        this.tracker.currentPosition.y
-      );
-
-      finalPos = {
-        x: transformed.x / this.projectorCanvas.width,
-        y: transformed.y / this.projectorCanvas.height
-      };
+    // Only draw if laser is inside the calibration area
+    if (!this.cameraCalibration.isInsideCalibrationArea(
+      this.tracker.currentPosition.x,
+      this.tracker.currentPosition.y
+    )) {
+      return;
     }
+
+    // Transform camera pixel coords to projector coords via calibration homography
+    const transformed = this.cameraCalibration.transform(
+      this.tracker.currentPosition.x,
+      this.tracker.currentPosition.y
+    );
+
+    const finalPos = {
+      x: transformed.x / this.projectorCanvas.width,
+      y: transformed.y / this.projectorCanvas.height
+    };
 
     // Clamp to valid range
     finalPos.x = Math.max(0, Math.min(1, finalPos.x));
@@ -637,6 +599,7 @@ export class AppController {
     this.cameraCalibration.movePoint(
       pointIndex, x, y, this.debugCanvas, this.camera.width, this.camera.height
     );
+    this._roiNeedsUpdate = true;
   }
 
   /**
@@ -651,6 +614,7 @@ export class AppController {
    */
   resetCalibration() {
     this.cameraCalibration.reset(this.camera.width, this.camera.height);
+    this._roiNeedsUpdate = true;
   }
 
   // =========================================

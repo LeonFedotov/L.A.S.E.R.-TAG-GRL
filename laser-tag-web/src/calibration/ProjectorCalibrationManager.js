@@ -319,6 +319,7 @@ export class ProjectorCalibrationManager {
       { x: 0, y: 1 }
     ];
     this.selectedPoint = -1;
+    this.save();
     console.log('Projector calibration reset');
   }
 

@@ -324,6 +324,11 @@ export class AppGuiAdapter {
    */
   reloadCalibration() {
     this.app.cameraCalibration.warping.load();
+    // Re-apply current projector dimensions — load() may restore an outdated dstQuad
+    this.app.cameraCalibration.updateProjectorDimensions(
+      this.app.projectorCanvas.width,
+      this.app.projectorCanvas.height
+    );
     this.app.projectorCalibration.load();
   }
 

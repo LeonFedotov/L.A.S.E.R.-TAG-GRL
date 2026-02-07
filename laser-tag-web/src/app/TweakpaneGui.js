@@ -1182,6 +1182,9 @@ export class TweakpaneGui {
     Object.assign(this.state, defaults);
     this.currentPresetName = '';
     this.applyStateToApp();
+    // Reset calibrations to defaults
+    this.adapter.resetCalibration();
+    this.adapter.resetProjectorCalibration();
     this.pane.refresh();
     this.updateColorSelection();
     this.updateShadowColorSelection();
