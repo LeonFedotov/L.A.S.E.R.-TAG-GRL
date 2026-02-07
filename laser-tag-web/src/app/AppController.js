@@ -36,6 +36,11 @@ export class AppController {
     this.captureCanvas = null;
     this.captureCtx = null;
 
+    // Tracking readback canvas (for warped tracking input)
+    this._trackingCanvas = null;
+    this._trackingCtx = null;
+    this._trackingWarped = false;
+
     // State
     this.isRunning = false;
     this.frameCount = 0;
@@ -110,6 +115,12 @@ export class AppController {
     this.debugCanvas.height = this.camera.height;
 
     console.log(`Camera resolution: ${this.camera.width}x${this.camera.height}`);
+
+    // Create offscreen canvas for reading back warped camera frame (for tracking)
+    this._trackingCanvas = document.createElement('canvas');
+    this._trackingCanvas.width = this.camera.width;
+    this._trackingCanvas.height = this.camera.height;
+    this._trackingCtx = this._trackingCanvas.getContext('2d', { willReadFrequently: true });
 
     // Initialize tracker
     this.tracker.init(this.camera.width, this.camera.height);
@@ -353,21 +364,45 @@ export class AppController {
     const imageData = this.camera.getFrame(this.captureCtx);
     if (!imageData) return;
 
-    // Update tracker ROI from camera calibration quad
-    // During calibration, update every frame (quad corners are being dragged).
-    // Otherwise, update only once after init or when calibration ends.
-    if (this.cameraCalibration.isCalibrating || !this._roiInitialized) {
-      this.tracker.setROI(this.cameraCalibration.getSourceQuad());
-      this._roiInitialized = true;
-      this._roiNeedsUpdate = true;
-    } else if (this._roiNeedsUpdate) {
-      // One final update after calibration mode exits
-      this.tracker.setROI(this.cameraCalibration.getSourceQuad());
-      this._roiNeedsUpdate = false;
-    }
+    // Determine if we can track on the warped (perspective-corrected) camera view.
+    // Benefits: smaller effective area, no ROI mask needed, positions map directly to projector.
+    // Only use warped input when calibration quad exists and we're not actively calibrating.
+    const srcQuad = this.cameraCalibration.getSourceQuad();
+    const hasCalibration = srcQuad && srcQuad.length === 4 && !this.cameraCalibration.isCalibrating;
+    const cameraWarp = this.renderingPipeline.cameraWarp;
 
-    // Process frame with tracker
-    this.tracker.processFrame(imageData);
+    if (hasCalibration && cameraWarp && this.warpedCameraCanvas) {
+      // Render camera through calibration warp (quad → rectangle)
+      // Use captureCanvas as source (has fresh camera frame from getFrame above)
+      cameraWarp.setInverseWarp(srcQuad, this.camera.width, this.camera.height);
+      cameraWarp.setCheckerboard(false);
+      cameraWarp.render(this.captureCanvas);
+
+      // Read back warped result to 2D canvas for tracker
+      this._trackingCtx.drawImage(this.warpedCameraCanvas, 0, 0,
+        this._trackingCanvas.width, this._trackingCanvas.height);
+      const warpedData = this._trackingCtx.getImageData(
+        0, 0, this._trackingCanvas.width, this._trackingCanvas.height);
+
+      // Clear ROI once when entering warped mode — warp already crops to calibration area
+      if (!this._trackingWarped) {
+        this.tracker.setROI(null);
+      }
+      this.tracker.processFrame(warpedData);
+      this._trackingWarped = true;
+    } else {
+      // No calibration or actively calibrating — track on raw frame with ROI mask
+      if (this.cameraCalibration.isCalibrating || !this._roiInitialized) {
+        this.tracker.setROI(srcQuad);
+        this._roiInitialized = true;
+        this._roiNeedsUpdate = true;
+      } else if (this._roiNeedsUpdate) {
+        this.tracker.setROI(srcQuad);
+        this._roiNeedsUpdate = false;
+      }
+      this.tracker.processFrame(imageData);
+      this._trackingWarped = false;
+    }
 
     // Check erase zone if enabled and tracking
     if (this.settings.eraseZoneEnabled && this.tracker.isTracking && this.tracker.currentPosition) {
@@ -386,6 +421,11 @@ export class AppController {
     // Draw debug view if enabled
     if (this.settings.showDebug && this.debugCtx) {
       this.tracker.drawDebug(this.debugCtx, imageData);
+
+      // Draw FPS counter on debug canvas
+      this.debugCtx.fillStyle = '#0f0';
+      this.debugCtx.font = 'bold 12px monospace';
+      this.debugCtx.fillText(`FPS: ${this.fps}`, 5, 60);
 
       // Draw calibration quad on debug canvas
       this.cameraCalibration.draw(
@@ -455,25 +495,31 @@ export class AppController {
     const normPos = this.tracker.getNormalizedPosition();
     if (!normPos) return;
 
-    // Ignore detections outside the camera calibration area
-    if (!this.cameraCalibration.isInsideCalibrationArea(
-      this.tracker.currentPosition.x,
-      this.tracker.currentPosition.y
-    )) {
-      return;
+    let finalPos;
+
+    if (this._trackingWarped) {
+      // Warped input: positions are already in calibrated space (quad → rect)
+      // Normalized position maps directly to projector coordinates
+      finalPos = { x: normPos.x, y: normPos.y };
+    } else {
+      // Raw input: positions are in camera pixel space, need calibration transform
+      if (!this.cameraCalibration.isInsideCalibrationArea(
+        this.tracker.currentPosition.x,
+        this.tracker.currentPosition.y
+      )) {
+        return;
+      }
+
+      const transformed = this.cameraCalibration.transform(
+        this.tracker.currentPosition.x,
+        this.tracker.currentPosition.y
+      );
+
+      finalPos = {
+        x: transformed.x / this.projectorCanvas.width,
+        y: transformed.y / this.projectorCanvas.height
+      };
     }
-
-    // Transform through calibration
-    const transformed = this.cameraCalibration.transform(
-      this.tracker.currentPosition.x,
-      this.tracker.currentPosition.y
-    );
-
-    // Normalize to 0-1 range for brush
-    const finalPos = {
-      x: transformed.x / this.projectorCanvas.width,
-      y: transformed.y / this.projectorCanvas.height
-    };
 
     // Clamp to valid range
     finalPos.x = Math.max(0, Math.min(1, finalPos.x));

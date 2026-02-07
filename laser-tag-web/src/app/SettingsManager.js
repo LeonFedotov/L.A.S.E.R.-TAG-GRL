@@ -157,11 +157,19 @@ export class SettingsManager {
     const key = `${STORAGE_PREFIX}preset_${name.trim()}`;
 
     try {
+      // Include calibration data in preset
+      const cameraQuad = localStorage.getItem('laserTagCalibration');
+      const projectorQuad = localStorage.getItem('laserTag_projectorQuad');
+
       // Save the preset
       localStorage.setItem(key, JSON.stringify({
         name: name.trim(),
         savedAt: new Date().toISOString(),
-        settings: settings
+        settings: settings,
+        calibration: {
+          camera: cameraQuad ? JSON.parse(cameraQuad) : null,
+          projector: projectorQuad ? JSON.parse(projectorQuad) : null
+        }
       }));
 
       // Update presets index
@@ -192,6 +200,17 @@ export class SettingsManager {
       if (saved) {
         const data = JSON.parse(saved);
         console.log(`Preset "${name}" loaded`);
+
+        // Restore calibration data if present
+        if (data.calibration) {
+          if (data.calibration.camera) {
+            localStorage.setItem('laserTagCalibration', JSON.stringify(data.calibration.camera));
+          }
+          if (data.calibration.projector) {
+            localStorage.setItem('laserTag_projectorQuad', JSON.stringify(data.calibration.projector));
+          }
+        }
+
         return data.settings;
       }
     } catch (e) {
