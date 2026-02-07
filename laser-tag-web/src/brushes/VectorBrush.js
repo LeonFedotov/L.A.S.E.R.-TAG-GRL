@@ -21,7 +21,7 @@ export class VectorBrush extends BaseBrush {
       minWidth: 2,
       maxWidth: 40,
       velocityScale: 0.5,    // How much velocity affects width
-      smoothing: 0.3,        // Line smoothing factor
+      smoothing: 0.85,       // Width smoothing (0=instant, 1=frozen). High value tames camera detection jitter
       mode: 'smooth',        // 'smooth', 'glow', 'basic', 'dope', 'arrow', 'arrowFat'
       shadowOffset: 8,       // Shadow offset for C++ style modes
       shadowColor: '#FF0AC2', // Shadow color for arrowFat mode
@@ -75,6 +75,7 @@ export class VectorBrush extends BaseBrush {
     this.bakeToBackground();
 
     this.strokeCounter++;
+    this._smoothedWidth = this.params.brushWidth;
     this.currentStroke = {
       points: [{ x, y, time: Date.now() }],
       color: { ...this.params.color },
@@ -143,16 +144,25 @@ export class VectorBrush extends BaseBrush {
     const dt = Date.now() - lastPoint.time;
     const velocity = dt > 0 ? dist / dt : 0;
 
-    // Calculate width based on velocity
-    let width = this.params.brushWidth;
+    // Calculate target width based on velocity with deadzone
+    // Velocity below threshold doesn't affect width (prevents jitter at slow speeds)
+    let targetWidth = this.params.brushWidth;
     if (this.params.velocityScale > 0) {
-      const velocityFactor = 1 - Math.min(velocity * this.params.velocityScale, 0.8);
-      width = this.params.minWidth +
+      const deadzone = 0.15; // px/ms — below this, treat as zero velocity
+      const effectiveVelocity = Math.max(0, velocity - deadzone);
+      const velocityFactor = 1 - Math.min(effectiveVelocity * this.params.velocityScale, 0.8);
+      targetWidth = this.params.minWidth +
         (this.params.maxWidth - this.params.minWidth) * velocityFactor;
     }
 
-    // Only add point if moved enough
-    if (dist > 2) {
+    // Smooth width with EMA to prevent jitter from detection noise
+    // smoothing param controls inertia: 0 = instant, 1 = frozen
+    const alpha = 1 - this.params.smoothing;
+    this._smoothedWidth = this._smoothedWidth * (1 - alpha) + targetWidth * alpha;
+    const width = this._smoothedWidth;
+
+    // Only add point if moved enough (higher threshold reduces jaggedness)
+    if (dist > 3) {
       this.currentStroke.points.push({
         x,
         y,
