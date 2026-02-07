@@ -158,7 +158,12 @@ export class AppController {
       // Set clone canvas size to match projector canvas
       elements.projectorCloneCanvas.width = this.projectorCanvas.width;
       elements.projectorCloneCanvas.height = this.projectorCanvas.height;
-      this.renderingPipeline.setCloneCanvas(elements.projectorCloneCanvas);
+      // Set overlay canvas size to match
+      if (elements.projectorCloneOverlay) {
+        elements.projectorCloneOverlay.width = this.projectorCanvas.width;
+        elements.projectorCloneOverlay.height = this.projectorCanvas.height;
+      }
+      this.renderingPipeline.setCloneCanvas(elements.projectorCloneCanvas, elements.projectorCloneOverlay);
       this.projectorCloneCanvas = elements.projectorCloneCanvas;
     }
 
