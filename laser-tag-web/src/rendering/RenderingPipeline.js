@@ -29,6 +29,9 @@ export class RenderingPipeline {
     // Debug canvas reference (for reading camera frame)
     this.debugCanvas = null;
 
+    // Capture canvas reference (raw camera frame without overlays)
+    this.captureCanvas = null;
+
     // WebGL warp instances
     this.cameraWarp = null;
     this.projectorWarp = null;
@@ -104,11 +107,19 @@ export class RenderingPipeline {
   }
 
   /**
-   * Set debug canvas reference (camera feed source for warped preview)
+   * Set debug canvas reference (camera feed with overlays)
    * @param {HTMLCanvasElement} canvas
    */
   setDebugCanvas(canvas) {
     this.debugCanvas = canvas;
+  }
+
+  /**
+   * Set capture canvas reference (raw camera frame without overlays)
+   * @param {HTMLCanvasElement} canvas
+   */
+  setCaptureCanvas(canvas) {
+    this.captureCanvas = canvas;
   }
 
   /**
@@ -254,7 +265,9 @@ export class RenderingPipeline {
    * Uses WebGL for single-pass perspective un-warping of the camera quad.
    */
   renderWarpedCamera() {
-    if (!this.warpedCameraCanvas || !this.cameraWarp || !this.debugCanvas) {
+    // Use captureCanvas (raw camera frame) to avoid debug overlays in preview
+    const sourceCanvas = this.captureCanvas || this.debugCanvas;
+    if (!this.warpedCameraCanvas || !this.cameraWarp || !sourceCanvas) {
       return;
     }
 
@@ -274,18 +287,18 @@ export class RenderingPipeline {
         { x: 1, y: 1 }, { x: 0, y: 1 }
       ]);
       this.cameraWarp.setCheckerboard(false);
-      this.cameraWarp.render(this.debugCanvas);
+      this.cameraWarp.render(sourceCanvas);
       return;
     }
 
-    const camW = this.debugCanvas.width;
-    const camH = this.debugCanvas.height;
+    const camW = sourceCanvas.width;
+    const camH = sourceCanvas.height;
     if (camW === 0 || camH === 0) return;
 
     // Set inverse warp: maps camera quad → full rectangle
     this.cameraWarp.setInverseWarp(srcQuad, camW, camH);
     this.cameraWarp.setCheckerboard(false);
-    this.cameraWarp.render(this.debugCanvas);
+    this.cameraWarp.render(sourceCanvas);
   }
 
   /**

@@ -178,23 +178,24 @@ export class PerspectiveWarp {
     if (key === this._lastQuadKey) return;
     this._lastQuadKey = key;
 
-    // Normalize pixel quad to 0-1
+    // Normalize pixel quad to 0-1, flipping Y to match WebGL's Y-up coords.
+    // The quad is in canvas Y-down space, but both v_texCoord (screen position)
+    // and texture sampling (with UNPACK_FLIP_Y_WEBGL) use Y-up coordinates.
     const normalizedQuad = pixelQuad.map(p => ({
       x: p.x / srcW,
-      y: p.y / srcH
+      y: 1.0 - (p.y / srcH)
     }));
 
-    // We want: for each output pixel (in 0-1), find source pixel in the quad
-    // Forward would be: quad → rect. Inverse (for shader) is: rect → quad
+    // Output rectangle in Y-up screen coords:
+    // TL=(0,1), TR=(1,1), BR=(1,0), BL=(0,0)
     const unitRect = [
-      { x: 0, y: 0 },
-      { x: 1, y: 0 },
+      { x: 0, y: 1 },
       { x: 1, y: 1 },
-      { x: 0, y: 1 }
+      { x: 1, y: 0 },
+      { x: 0, y: 0 }
     ];
 
-    // Compute: rect → quad (this maps output coords to source quad coords)
-    // The shader uses this directly: output texCoord → source texCoord in quad
+    // Compute: screen rect → source quad (both in Y-up WebGL coords)
     this.homography = Homography.computeHomography(unitRect, normalizedQuad);
   }
 
