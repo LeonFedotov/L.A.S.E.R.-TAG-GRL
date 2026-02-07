@@ -1342,7 +1342,7 @@ export class TweakpaneGui {
     localStorage.setItem(POPUP_OPEN_KEY, 'true');
 
     const canvas = this.projectorWindow.document.getElementById('projector-canvas');
-    const ctx = canvas.getContext('2d');
+    // Don't create 2D context on content canvas - PerspectiveWarp will get webgl2
     const overlayCanvas = this.projectorWindow.document.getElementById('overlay-canvas');
     const overlayCtx = overlayCanvas.getContext('2d');
     const container = this.projectorWindow.document.getElementById('canvas-container');
@@ -1353,7 +1353,6 @@ export class TweakpaneGui {
     this.adapter.setProjectorPopup({
       window: this.projectorWindow,
       canvas: canvas,
-      ctx: ctx,
       overlayCanvas: overlayCanvas,
       overlayCtx: overlayCtx,
       container: container

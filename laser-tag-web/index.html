@@ -197,6 +197,7 @@
     }
 
     .canvas-wrapper {
+      position: relative;
       flex: 1;
       display: flex;
       align-items: center;
@@ -956,6 +957,7 @@
                   <div class="preview-label">Projection Output</div>
                   <div class="canvas-wrapper">
                     <canvas id="projector-clone-canvas"></canvas>
+                    <canvas id="projector-clone-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></canvas>
                   </div>
                 </div>
               </div>

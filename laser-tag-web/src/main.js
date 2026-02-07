@@ -55,6 +55,7 @@ async function initApp() {
     const elements = {
       projectorCanvas: document.getElementById('projector-canvas'),
       projectorCloneCanvas: document.getElementById('projector-clone-canvas'),
+      projectorCloneOverlay: document.getElementById('projector-clone-overlay'),
       debugCanvas: document.getElementById('debug-canvas'),
       warpedCameraCanvas: document.getElementById('warped-camera-canvas'),
       videoElement: document.getElementById('video-element')
