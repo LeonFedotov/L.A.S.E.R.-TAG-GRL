@@ -400,4 +400,14 @@ export class AppGuiAdapter {
   setProjectorPopup(popup) {
     this.app.projectorPopup = popup;
   }
+
+  /**
+   * Set projector resolution from popup window dimensions.
+   * Pass null to clear (reverts to container-based sizing).
+   * @param {number|null} width
+   * @param {number|null} height
+   */
+  setProjectorResolution(width, height) {
+    this.app.setProjectorResolution(width, height);
+  }
 }

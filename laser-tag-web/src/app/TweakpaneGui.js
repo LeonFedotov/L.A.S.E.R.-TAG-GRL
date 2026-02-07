@@ -1369,6 +1369,7 @@ export class TweakpaneGui {
         clearInterval(checkPopupClosed);
         this.projectorWindow = null;
         this.adapter.setProjectorPopup(null);
+        this.adapter.setProjectorResolution(null, null); // Revert to container sizing
         localStorage.removeItem(POPUP_OPEN_KEY);
       }
     }, 500);
@@ -1400,6 +1401,9 @@ export class TweakpaneGui {
       canvas.height = h;
       overlayCanvas.width = w;
       overlayCanvas.height = h;
+      // Propagate popup resolution to main app — the popup is the actual
+      // projector output, so its dimensions drive all resolution calculations
+      this.adapter.setProjectorResolution(w, h);
       console.log(`Popup resize: ${w}x${h}, fullscreen: ${isFullscreen}`);
     };
     resize();
