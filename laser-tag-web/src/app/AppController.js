@@ -886,5 +886,9 @@ export class AppController {
     this.camera.stop();
     this.tracker.dispose();
     this.brushManager.dispose();
+    if (this.postProcessor) {
+      this.postProcessor.dispose();
+    }
+    this.renderingPipeline.dispose();
   }
 }

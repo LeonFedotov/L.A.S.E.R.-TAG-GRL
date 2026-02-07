@@ -4,6 +4,7 @@
  */
 import { VectorBrush } from './VectorBrush.js';
 import { getAvailableModes } from './modes/index.js';
+import { hexToRgb } from '../utils/ColorUtils.js';
 
 export class BrushManager {
   constructor() {
@@ -128,12 +129,11 @@ export class BrushManager {
    * @param {string} hexColor - Hex color string (e.g., '#FF0000')
    */
   setColor(hexColor) {
-    const r = parseInt(hexColor.slice(1, 3), 16);
-    const g = parseInt(hexColor.slice(3, 5), 16);
-    const b = parseInt(hexColor.slice(5, 7), 16);
+    const rgb = hexToRgb(hexColor);
+    if (!rgb) return;
 
     for (const brush of this.brushes) {
-      brush.setColor(r, g, b);
+      brush.setColor(rgb.r, rgb.g, rgb.b);
     }
   }
 

@@ -19,15 +19,10 @@ export class SmoothModeStrategy extends BrushModeStrategy {
     const w0 = p0.width || params.brushWidth;
     const w1 = p1.width || params.brushWidth;
 
-    // Calculate perpendicular offset
-    const dx = p1.x - p0.x;
-    const dy = p1.y - p0.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
+    const dir = BrushModeStrategy.direction(p0, p1);
+    if (!dir) return;
 
-    if (len < 0.1) return;
-
-    const nx = -dy / len;
-    const ny = dx / len;
+    const { nx, ny } = dir;
 
     // Draw filled quad with gradient width
     ctx.beginPath();

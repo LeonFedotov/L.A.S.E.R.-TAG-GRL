@@ -5,6 +5,7 @@
  * - Save/Load presets with custom names
  * - Reset to defaults
  */
+import { storageSave, storageLoad, storageRemove } from '../utils/StorageUtils.js';
 
 const STORAGE_PREFIX = 'laserTag_';
 const AUTOSAVE_KEY = `${STORAGE_PREFIX}autosave`;
@@ -89,17 +90,9 @@ export class SettingsManager {
    * @returns {Object|null} Settings or null if none found
    */
   loadAutosave() {
-    try {
-      const saved = localStorage.getItem(AUTOSAVE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        console.log('Loaded autosaved settings');
-        return parsed;
-      }
-    } catch (e) {
-      console.error('Failed to load autosave:', e);
-    }
-    return null;
+    const settings = storageLoad(AUTOSAVE_KEY);
+    if (settings) console.log('Loaded autosaved settings');
+    return settings;
   }
 
   /**
@@ -122,24 +115,15 @@ export class SettingsManager {
    * @param {Object} settings
    */
   _doAutosave(settings) {
-    try {
-      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(settings));
-      // console.log('Settings autosaved');
-    } catch (e) {
-      console.error('Failed to autosave settings:', e);
-    }
+    storageSave(AUTOSAVE_KEY, settings);
   }
 
   /**
    * Clear autosaved session
    */
   clearAutosave() {
-    try {
-      localStorage.removeItem(AUTOSAVE_KEY);
-      console.log('Autosave cleared');
-    } catch (e) {
-      console.error('Failed to clear autosave:', e);
-    }
+    storageRemove(AUTOSAVE_KEY);
+    console.log('Autosave cleared');
   }
 
   /**
@@ -156,35 +140,30 @@ export class SettingsManager {
 
     const key = `${STORAGE_PREFIX}preset_${name.trim()}`;
 
-    try {
-      // Include calibration data in preset
-      const cameraQuad = localStorage.getItem('laserTagCalibration');
-      const projectorQuad = localStorage.getItem('laserTag_projectorQuad');
+    // Include calibration data in preset
+    const cameraQuad = storageLoad('laserTagCalibration');
+    const projectorQuad = storageLoad('laserTag_projectorQuad');
 
-      // Save the preset
-      localStorage.setItem(key, JSON.stringify({
-        name: name.trim(),
-        savedAt: new Date().toISOString(),
-        settings: settings,
-        calibration: {
-          camera: cameraQuad ? JSON.parse(cameraQuad) : null,
-          projector: projectorQuad ? JSON.parse(projectorQuad) : null
-        }
-      }));
+    const saved = storageSave(key, {
+      name: name.trim(),
+      savedAt: new Date().toISOString(),
+      settings: settings,
+      calibration: {
+        camera: cameraQuad,
+        projector: projectorQuad
+      }
+    }, `Preset "${name}"`);
 
+    if (saved) {
       // Update presets index
       const presets = this.getPresetsList();
       if (!presets.includes(name.trim())) {
         presets.push(name.trim());
-        localStorage.setItem(PRESETS_INDEX_KEY, JSON.stringify(presets));
+        storageSave(PRESETS_INDEX_KEY, presets);
       }
-
-      console.log(`Preset "${name}" saved`);
-      return true;
-    } catch (e) {
-      console.error('Failed to save preset:', e);
-      return false;
     }
+
+    return saved;
   }
 
   /**
@@ -194,29 +173,22 @@ export class SettingsManager {
    */
   loadPreset(name) {
     const key = `${STORAGE_PREFIX}preset_${name.trim()}`;
+    const data = storageLoad(key, null, `Preset "${name}"`);
+    if (!data) return null;
 
-    try {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        const data = JSON.parse(saved);
-        console.log(`Preset "${name}" loaded`);
+    console.log(`Preset "${name}" loaded`);
 
-        // Restore calibration data if present
-        if (data.calibration) {
-          if (data.calibration.camera) {
-            localStorage.setItem('laserTagCalibration', JSON.stringify(data.calibration.camera));
-          }
-          if (data.calibration.projector) {
-            localStorage.setItem('laserTag_projectorQuad', JSON.stringify(data.calibration.projector));
-          }
-        }
-
-        return data.settings;
+    // Restore calibration data if present
+    if (data.calibration) {
+      if (data.calibration.camera) {
+        storageSave('laserTagCalibration', data.calibration.camera);
       }
-    } catch (e) {
-      console.error(`Failed to load preset "${name}":`, e);
+      if (data.calibration.projector) {
+        storageSave('laserTag_projectorQuad', data.calibration.projector);
+      }
     }
-    return null;
+
+    return data.settings;
   }
 
   /**
@@ -226,24 +198,18 @@ export class SettingsManager {
    */
   deletePreset(name) {
     const key = `${STORAGE_PREFIX}preset_${name.trim()}`;
+    storageRemove(key);
 
-    try {
-      localStorage.removeItem(key);
-
-      // Update presets index
-      const presets = this.getPresetsList();
-      const idx = presets.indexOf(name.trim());
-      if (idx >= 0) {
-        presets.splice(idx, 1);
-        localStorage.setItem(PRESETS_INDEX_KEY, JSON.stringify(presets));
-      }
-
-      console.log(`Preset "${name}" deleted`);
-      return true;
-    } catch (e) {
-      console.error(`Failed to delete preset "${name}":`, e);
-      return false;
+    // Update presets index
+    const presets = this.getPresetsList();
+    const idx = presets.indexOf(name.trim());
+    if (idx >= 0) {
+      presets.splice(idx, 1);
+      storageSave(PRESETS_INDEX_KEY, presets);
     }
+
+    console.log(`Preset "${name}" deleted`);
+    return true;
   }
 
   /**
@@ -251,15 +217,7 @@ export class SettingsManager {
    * @returns {Array<string>}
    */
   getPresetsList() {
-    try {
-      const saved = localStorage.getItem(PRESETS_INDEX_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.error('Failed to get presets list:', e);
-    }
-    return [];
+    return storageLoad(PRESETS_INDEX_KEY, [], 'presets list');
   }
 
   /**
@@ -269,20 +227,9 @@ export class SettingsManager {
    */
   getPresetInfo(name) {
     const key = `${STORAGE_PREFIX}preset_${name.trim()}`;
-
-    try {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        const data = JSON.parse(saved);
-        return {
-          name: data.name,
-          savedAt: data.savedAt
-        };
-      }
-    } catch (e) {
-      console.error(`Failed to get preset info for "${name}":`, e);
-    }
-    return null;
+    const data = storageLoad(key);
+    if (!data) return null;
+    return { name: data.name, savedAt: data.savedAt };
   }
 
   /**

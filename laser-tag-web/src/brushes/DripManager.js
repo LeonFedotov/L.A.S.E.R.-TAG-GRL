@@ -11,6 +11,8 @@ export class DripManager {
     this.drips = [];
     // Trail segments for redraw
     this.trails = [];
+    // Index of first undrawn trail (for incremental rendering)
+    this._drawnTrailCount = 0;
   }
 
   /**
@@ -152,6 +154,25 @@ export class DripManager {
   }
 
   /**
+   * Draw only trail segments added since last call (incremental rendering).
+   * Avoids full canvas clear+redraw when only drips are animating.
+   * @param {CanvasRenderingContext2D} ctx
+   */
+  drawNewTrails(ctx) {
+    for (let i = this._drawnTrailCount; i < this.trails.length; i++) {
+      this.drawTrailSegment(ctx, this.trails[i]);
+    }
+    this._drawnTrailCount = this.trails.length;
+  }
+
+  /**
+   * Reset the drawn trail counter (call after full redraw)
+   */
+  resetDrawnCount() {
+    this._drawnTrailCount = this.trails.length;
+  }
+
+  /**
    * Draw trails for a specific stroke index
    * @param {CanvasRenderingContext2D} ctx
    * @param {number|null} strokeIndex - Stroke index, or null for orphans
@@ -228,6 +249,7 @@ export class DripManager {
   clear() {
     this.drips = [];
     this.trails = [];
+    this._drawnTrailCount = 0;
   }
 
   /**
@@ -235,5 +257,6 @@ export class DripManager {
    */
   clearTrails() {
     this.trails = [];
+    this._drawnTrailCount = 0;
   }
 }

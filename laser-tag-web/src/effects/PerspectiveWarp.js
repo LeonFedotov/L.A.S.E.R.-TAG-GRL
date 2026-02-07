@@ -7,6 +7,7 @@
  * and inverse warp (quad→rect for camera un-warping).
  */
 import { Homography } from '../utils/Homography.js';
+import { createProgram } from '../utils/WebGLUtils.js';
 
 const VERTEX_SHADER = `
   attribute vec2 a_position;
@@ -46,6 +47,11 @@ const FRAGMENT_SHADER = `
   }
 `;
 
+/** Generate a string key from a quad for caching */
+function _quadKey(quad) {
+  return quad.map(p => p.x.toFixed(4) + ',' + p.y.toFixed(4)).join(';');
+}
+
 export class PerspectiveWarp {
   constructor() {
     this.gl = null;
@@ -65,6 +71,9 @@ export class PerspectiveWarp {
     // Track canvas dimensions for auto-resize
     this._lastWidth = 0;
     this._lastHeight = 0;
+
+    // Cache key to avoid recomputing homography for unchanged quads
+    this._lastQuadKey = '';
   }
 
   /**
@@ -85,7 +94,7 @@ export class PerspectiveWarp {
     const gl = this.gl;
 
     // Compile shaders
-    this.program = this._createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+    this.program = createProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER, 'PerspectiveWarp');
     if (!this.program) return false;
 
     // Cache uniform locations
@@ -139,6 +148,10 @@ export class PerspectiveWarp {
    * @param {Array<{x: number, y: number}>} normalizedQuad - 4 corners in 0-1 coords [TL, TR, BR, BL]
    */
   setForwardWarp(normalizedQuad) {
+    const key = 'F' + _quadKey(normalizedQuad);
+    if (key === this._lastQuadKey) return;
+    this._lastQuadKey = key;
+
     // Forward: unit rect → quad
     const unitRect = [
       { x: 0, y: 0 },
@@ -161,6 +174,10 @@ export class PerspectiveWarp {
    * @param {number} srcH - Source image height
    */
   setInverseWarp(pixelQuad, srcW, srcH) {
+    const key = 'I' + _quadKey(pixelQuad) + srcW + ',' + srcH;
+    if (key === this._lastQuadKey) return;
+    this._lastQuadKey = key;
+
     // Normalize pixel quad to 0-1
     const normalizedQuad = pixelQuad.map(p => ({
       x: p.x / srcW,
@@ -263,42 +280,4 @@ export class PerspectiveWarp {
     this.canvas = null;
   }
 
-  /**
-   * Compile and link a shader program
-   * @private
-   */
-  _createProgram(vertexSrc, fragmentSrc) {
-    const gl = this.gl;
-
-    const vs = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vs, vertexSrc);
-    gl.compileShader(vs);
-    if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
-      console.error('PerspectiveWarp vertex shader:', gl.getShaderInfoLog(vs));
-      return null;
-    }
-
-    const fs = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fs, fragmentSrc);
-    gl.compileShader(fs);
-    if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
-      console.error('PerspectiveWarp fragment shader:', gl.getShaderInfoLog(fs));
-      return null;
-    }
-
-    const prog = gl.createProgram();
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-      console.error('PerspectiveWarp link:', gl.getProgramInfoLog(prog));
-      return null;
-    }
-
-    // Shaders can be detached after linking
-    gl.deleteShader(vs);
-    gl.deleteShader(fs);
-
-    return prog;
-  }
 }

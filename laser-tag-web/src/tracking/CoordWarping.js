@@ -2,6 +2,8 @@
  * CoordWarping - Handles perspective transformation for calibration
  * Transforms points from camera space to projection space
  */
+import { storageSave, storageLoad } from '../utils/StorageUtils.js';
+
 export class CoordWarping {
   constructor() {
     // Source quad (camera calibration points)
@@ -294,11 +296,7 @@ export class CoordWarping {
    * @param {string} key - Storage key
    */
   save(key = 'laserTagCalibration') {
-    const data = {
-      srcQuad: this.srcQuad,
-      dstQuad: this.dstQuad
-    };
-    localStorage.setItem(key, JSON.stringify(data));
+    storageSave(key, { srcQuad: this.srcQuad, dstQuad: this.dstQuad });
   }
 
   /**
@@ -307,16 +305,12 @@ export class CoordWarping {
    * @returns {boolean} - True if loaded successfully
    */
   load(key = 'laserTagCalibration') {
-    try {
-      const data = JSON.parse(localStorage.getItem(key));
-      if (data && data.srcQuad && data.dstQuad) {
-        this.srcQuad = data.srcQuad;
-        this.dstQuad = data.dstQuad;
-        this.computeMatrix();
-        return true;
-      }
-    } catch (e) {
-      console.warn('Failed to load calibration:', e);
+    const data = storageLoad(key, null, 'calibration');
+    if (data && data.srcQuad && data.dstQuad) {
+      this.srcQuad = data.srcQuad;
+      this.dstQuad = data.dstQuad;
+      this.computeMatrix();
+      return true;
     }
     return false;
   }
